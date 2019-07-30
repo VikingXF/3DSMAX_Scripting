@@ -1,0 +1,2 @@
+$.EditablePoly.attach $2 $
+$.EditablePoly.detachToElement #Face keepOriginal:off
