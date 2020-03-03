@@ -1,0 +1,4020 @@
+-- Macro Scripts File
+-- Created:  Aug 27 2008
+-- Author:   Michael Russo
+-- Macro Scripts for Modeling Ribbon
+--***********************************************************************************************
+-- MODIFY THIS AT YOUR OWN RISK
+
+
+--转四边面
+--macros.run "Modifier Stack" "Convert_to_Poly"
+--macros.run "PolyTools" "Quadrify"
+
+--以下批处理
+--arr = for s in selection collect s
+--for obj in arr do (select obj;PolyToolsModeling.Quadrify false false)
+
+--arr = for s in selection collect s
+--for obj in arr do (select obj;macros.run "Modifier Stack" "Convert_to_Poly"
+--macros.run "PolyTools" "Quadrify")
+
+
+--------------------------------------------------------------------
+---
+--- Polygon Modeling
+---
+--------------------------------------------------------------------
+
+Macroscript PaintSoftSelectionRibbonButton
+category: ~PAINTSOFTSELECTIONRIBBONBUTTON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTSOFTSELECTIONRIBBONBUTTON_TOOLTIP~
+(
+	
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on isChecked do
+	(
+		Ribbon_Modeling.IsPaintSSMode()
+	)
+	
+	on execute do 
+	(
+		Ribbon_Modeling.PaintSSMode 1
+	)
+	
+	on closeDialogs do
+	(
+		Ribbon_Modeling.PaintSSMode 0
+	)
+)
+
+Macroscript EditSoftSelectionRibbonButton
+category: ~EDITSOFTSELECTIONRIBBONBUTTON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDITSOFTSELECTIONRIBBONBUTTON_TOOLTIP~
+(
+	
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on isChecked do
+	(
+		Ribbon_Modeling.IsEditSoftSelectionMode()
+	)
+	
+	on execute do 
+	(
+		Ribbon_Modeling.EditSoftSelectionMode()
+	)
+
+)
+
+Macroscript NURMSRibbonButton
+category: ~NURMSRIBBONBUTTON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSRIBBONBUTTON_TOOLTIP~
+(
+	
+	on isEnabled do
+	(
+		-- NURMS is only available for Editable Polys
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		Ribbon_Modeling.IsNURMSOn()
+	)
+	
+	on execute do 
+	(
+		Ribbon_Modeling.NURMSToggle true
+	)
+	
+	on closeDialogs do
+	(
+		Ribbon_Modeling.NURMSToggle false
+	)
+)
+
+Macroscript DisplacementRibbonButton
+category: ~DISPLACEMENTRIBBONBUTTON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLACEMENTRIBBONBUTTON_TOOLTIP~
+(
+	
+	on isChecked do
+	(
+		Ribbon_Modeling.IsDisplacementOn()
+	)
+	
+	on execute do 
+	(
+		Ribbon_Modeling.DisplacementToggle true
+	)
+	
+	on closeDialogs do
+	(
+		Ribbon_Modeling.DisplacementToggle false
+	)
+)
+
+Macroscript IgnoreBackfacing
+category: ~IGNOREBACKFACING_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~IGNOREBACKFACING_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.ignoreBackfacing
+		)
+		else ( false )
+	)
+	
+	on execute do 
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.ignoreBackfacing = not curmod.ignoreBackfacing
+		)
+	)
+)
+
+Macroscript PreviewOff
+category: ~PREVIEWOFF_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PREVIEWOFF_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and subobjectlevel > 0
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode == 0
+		)
+		else false
+	)
+	
+	on execute do 
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode = 0
+		)
+	)
+)
+
+Macroscript PreviewSO
+category: ~PREVIEWSO_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PREVIEWSO_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and subobjectlevel > 0
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode == 1
+		)
+		else false
+	)
+	
+	on execute do 
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode = 1
+		)
+	)
+)
+
+Macroscript PreviewMulti
+category: ~PREVIEWMULTI_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PREVIEWMULTI_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and subobjectlevel > 0
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode == 2
+		)
+		else false		
+	)
+	
+	on execute do 
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectMode = 2
+		)
+	)
+)
+
+Macroscript ModifyButton
+category: ~MODIFYBUTTON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~MODIFYBUTTON_TOOLTIP~
+(	
+	on isEnabled do
+	(
+		-- keep the button enabled as long as it has valid text
+		buttonText = Ribbon_Modeling.GetModifyButtonText()
+		( undefined != buttonText and "" != buttonText ) -- returns the result of this evaluation
+	)
+	
+	on execute do 
+	(
+		max modify mode
+	)
+)
+
+Macroscript NextModifier
+category: ~NEXTMODIFIER_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NEXTMODIFIER_TOOLTIP~
+(
+	
+	on isEnabled do
+	(
+		result = false
+		if selection.count == 1 and $.modifiers.count != 0 then
+		(
+			current = Modpanel.getcurrentObject()
+			if $.baseobject == current then
+			(
+				result = true
+			)
+			else
+			(
+				index = (Ribbon_Modeling.FindModifierIndex current $)
+				result = (undefined != index and 1 < index)
+			)
+		)
+		
+		result
+	)
+	
+	on execute do 
+	(
+		if selection.count == 1 and $.modifiers.count != 0 then
+		(
+			current = Modpanel.getcurrentObject() 
+			if $.baseobject == current then
+			(
+				Modpanel.setcurrentObject $.modifiers[$.modifiers.count] node:$
+			)
+			else
+			(
+				index = (Ribbon_Modeling.FindModifierIndex current $)
+				if undefined != index and 1 < index then
+				(
+					Modpanel.setcurrentObject $.modifiers[index - 1] node:$
+				)
+			)			
+		)
+	)
+)
+
+Macroscript PreviousModifier
+category: ~PREVIOUSMODIFIER_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PREVIOUSMODIFIER_TOOLTIP~
+(
+	on isEnabled do
+	(
+		result = false
+		if selection.count == 1 and $.modifiers.count != 0 then
+		(
+			index = (Ribbon_Modeling.FindModifierIndex (Modpanel.getcurrentObject()) $)
+			result = (undefined != index and index <= $.modifiers.count)
+		)
+		
+		result
+	)
+	
+	on execute do 
+	(
+		if selection.count == 1 and $.modifiers.count != 0 then
+		(
+			index = (Ribbon_Modeling.FindModifierIndex (Modpanel.getcurrentObject()) $)
+			if undefined != index and index < $.modifiers.count then
+			(
+				Modpanel.setcurrentObject $.modifiers[index + 1] node:$
+			)
+			else
+			(
+				Modpanel.setcurrentObject ($.baseobject) node:$
+			)
+		)
+	)
+)
+
+Macroscript CommandPanelToggle
+category: ~COMMANDPANELTOGGLE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~COMMANDPANELTOGGLE_TOOLTIP~
+(
+	on isChecked do
+	(
+		cui.commandPanelOpen
+	)
+	
+	on execute do 
+	(
+		max hide command panel toggle
+		max modify mode
+	)
+)
+
+Macroscript PinStackToggle
+category: ~PINSTACKTOGGLE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PINSTACKTOGGLE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		modpanel.isPinStackEnabled()
+	)
+	on isChecked do
+	(
+		modpanel.getPinStack()
+	)
+	on execute do 
+	(
+		modpanel.setPinStack (not modpanel.getPinStack())
+	)
+)
+
+MacroScript ShowEndResultToggle
+category:~SHOWENDRESULTTOGGLE_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+ButtonText:~SHOWENDRESULTTOGGLE_BUTTONTEXT~
+tooltip:~SHOWENDRESULTTOGGLE_TOOLTIP~ 
+
+(
+	on execute do 
+	(
+		showEndResult = not showEndResult -- action to execute - toggle the setting
+		updateToolbarButtons()
+	)
+	on isEnabled do
+	(
+		true -- greyed out if false
+	)
+	on isChecked do
+	(
+		showEndResult -- checked if true
+	)
+	on isVisible do
+	(
+		true -- visible if true
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Soft Selection
+---
+--------------------------------------------------------------------
+Macroscript SSToggle
+category: ~SSTOGGLE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SSTOGGLE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.useSoftSel
+		)
+		else ( false )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.useSoftSel = not curmod.useSoftSel
+	)
+)
+
+Macroscript SSEdgeDistance
+category: ~SSEDGEDISTANCE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SSEDGEDISTANCE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSOMode() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.ssUseEdgeDist
+		)
+		else ( false )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ssUseEdgeDist = not curmod.ssUseEdgeDist
+	)
+)
+
+Macroscript SSLock
+category: ~SSLOCK_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SSLOCK_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSOMode() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.lockSoftSel
+		)
+		else ( false )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.lockSoftSel = not curmod.lockSoftSel
+	)
+)
+
+Macroscript SSAffectBackfacing
+category: ~SSAFFECTBACKFACING_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SSAFFECTBACKFACING_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSOMode() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.affectBackfacing
+		)
+		else ( false )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.affectBackfacing = not curmod.affectBackfacing
+	)
+)
+
+Macroscript SSToggleShaded
+category: ~SSTOGGLESHADED_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SSTOGGLESHADED_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsSoftSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ToggleShadedFaces()
+		else
+			curmod.ButtonOp #ToggleShadedFaces
+	)
+)
+
+
+--------------------------------------------------------------------
+---
+--- Paint Deform
+---
+--------------------------------------------------------------------
+Macroscript PaintDeformCommit
+category: ~PAINTDEFORMCOMMIT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTDEFORMCOMMIT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.CommitPaintDeform()
+	)
+)
+
+Macroscript PaintDeformCancel
+category: ~PAINTDEFORMCANCEL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTDEFORMCANCEL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.CancelPaintDeform()
+	)
+)
+
+Macroscript PaintDeformPushPull
+category: ~PAINTDEFORMPUSHPULL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTDEFORMPUSHPULL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(	
+			-- 4: PushPull
+			curmod = Modpanel.getcurrentObject()
+			(curmod.paintdeformmode == 4)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 4: PushPull
+		if ( curmod.paintdeformmode == 4 ) then
+		(
+			-- 0: Turn off
+			curmod.paintdeformmode = 0
+		)
+		else
+		(
+			curmod.paintdeformmode = 4
+		)
+	)
+)
+
+Macroscript PaintDeformRelax
+category: ~PAINTDEFORMRELAX_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTDEFORMRELAX_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(		
+			-- 4: Relax
+			curmod = Modpanel.getcurrentObject()
+			(curmod.paintdeformmode == 5)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 5: Relax
+		if ( curmod.paintdeformmode == 5 ) then
+		(
+			-- 0: turn off
+			curmod.paintdeformmode = 0
+		)
+		else
+		(
+			curmod.paintdeformmode = 5
+		)
+	)
+)
+
+Macroscript PaintDeformRevert
+category: ~PAINTDEFORMREVERT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTDEFORMREVERT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(		
+			-- 6: Revert
+			curmod = Modpanel.getcurrentObject()
+			(curmod.paintdeformmode == 6)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 6: Revert
+		if ( curmod.paintdeformmode == 6 ) then
+		(
+			-- 0: turn off
+			curmod.paintdeformmode = 0
+		)
+		else
+		(
+			curmod.paintdeformmode = 6
+		)
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Paint Soft Selection
+---
+--------------------------------------------------------------------
+
+Macroscript PaintSSEdit
+category: ~PAINTSSEDIT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTSSEDIT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode() ) then
+		(		
+			-- 0: Edit mode
+			curmod = Modpanel.getcurrentObject()
+			(curmod.paintselmode == 0)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		-- 0: Edit mode
+		curmod = Modpanel.getcurrentObject()
+		curmod.paintselmode = 0
+	)
+)
+
+Macroscript PaintSSPaint
+category: ~PAINTSSPAINT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTSSPAINT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		local retValue = false
+		if (Ribbon_Modeling.ValidSOMode() ) then
+		(	
+			-- 1: Paint mode		
+			curmod = Modpanel.getcurrentObject()
+			retValue = (curmod.paintselmode == 1)
+		)
+		retValue
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 1: Paint mode
+		if ( curmod.paintselmode == 1 ) then
+		(
+			-- 0: Edit mode
+			curmod.paintselmode = 0
+		)
+		else
+		(
+			curmod.paintselmode = 1
+		)
+	)
+)
+
+Macroscript PaintSSBlur
+category: ~PAINTSSBLUR_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTSSBLUR_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		local retValue = false
+		if (Ribbon_Modeling.ValidSOMode() ) then
+		(		
+			-- 3: blur mode
+			curmod = Modpanel.getcurrentObject()
+			retValue = (curmod.paintselmode == 3)
+		)
+		retValue
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 3: blur mode
+		if ( curmod.paintselmode == 3 ) then
+		(
+			-- 1: Paint mode
+			curmod.paintselmode = 1
+		)
+		else
+		(
+			curmod.paintselmode = 3
+		)
+	)
+)
+
+Macroscript PaintSSRevert
+category: ~PAINTSSREVERT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTSSREVERT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		local retValue = false
+		if (Ribbon_Modeling.ValidSOMode() ) then
+		(		
+			-- 2: revert mode
+			curmod = Modpanel.getcurrentObject()
+			retValue = (curmod.paintselmode == 2)
+		)
+		retValue
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		-- 2: revert mode
+		if ( curmod.paintselmode == 2 ) then
+		(
+			-- 1: Paint mode
+			curmod.paintselmode = 1
+		)
+		else
+		(
+			curmod.paintselmode = 2
+		)
+	)
+)
+
+Macroscript PainterOptions
+category: ~PAINTEROPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PAINTEROPTIONS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		thePainterInterface.paintOptions()
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Align
+---
+--------------------------------------------------------------------
+Macroscript AlignX
+category: ~ALIGNX_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ALIGNX_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.MakePlanarIn #X
+		)
+		else
+		(
+			curmod.ButtonOp #MakePlanarInX
+		)
+	)
+)
+
+
+Macroscript AlignY
+category: ~ALIGNY_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ALIGNY_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.MakePlanarIn #Y
+		)
+		else
+		(
+			curmod.ButtonOp #MakePlanarInY
+		)
+	)
+)
+
+Macroscript AlignZ
+category: ~ALIGNZ_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ALIGNZ_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.MakePlanarIn #Z
+		)
+		else
+		(
+			curmod.ButtonOp #MakePlanarInZ
+		)
+	)
+)
+
+Macroscript AlignToView
+category: ~ALIGNTOVIEW_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ALIGNTOVIEW_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.alignToView (Ribbon_Modeling.GetSOEnum())
+		)
+		else
+		(
+			curmod.alignType = 0
+			viewdir = -(Inverse(getViewTM())).row3
+			objtm = Inverse($.objecttransform)
+			objtm.row4 = [0,0,0]
+			curmod.alignPlaneNormal = Normalize (viewdir * objtm)
+			vertssel = curmod.getSelection #Vertex
+			curmod.ConvertSelection (Ribbon_Modeling.GetSOEnum()) #Vertex
+			useverts = curmod.getSelection #Vertex
+			curmod.setSelection #Vertex vertssel
+			vcount = (useverts as array).count
+			if vcount != 0 do
+			(
+				alldot = 0.0
+				for i in useverts do
+				(
+					vpos = (curmod.getVertex i) * Inverse($.objecttransform)
+					alldot += dot curmod.alignPlaneNormal vpos
+				)
+				alldot /= vcount
+				curmod.alignPlaneOffset = alldot
+				curmod.ButtonOp #Align
+			)
+		)
+	)
+)
+
+Macroscript AlignToGrid
+category: ~ALIGNTOGRID_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ALIGNTOGRID_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.alignToGrid (Ribbon_Modeling.GetSOEnum())
+		)
+		else
+		(
+			curmod.alignType = 1
+			gridtm = getCPTM()
+			objtm = Inverse($.objecttransform)
+			nettm = gridtm * objtm
+			nettm.row4 = [0,0,0]
+			znorm = Normalize ([0,0,-1] * nettm)
+			curmod.alignPlaneNormal = znorm
+			zoff = dot znorm (gridtm * objtm).row4
+			curmod.alignPlaneOffset = zoff
+			curmod.ButtonOp #Align
+		)
+	)
+)
+
+Macroscript MakePlanar
+category: ~MAKEPLANAR_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~MAKEPLANAR_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod.makePlanar (Ribbon_Modeling.GetSOEnum())
+		)
+		else
+		(
+			curmod.ButtonOp #MakePlanar
+		)
+	)
+)
+
+
+--------------------------------------------------------------------
+---
+--- Geometry
+---
+--------------------------------------------------------------------
+Macroscript RepeatLast
+category: ~REPEATLAST_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~REPEATLAST_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.repeatLastOperation()
+
+	)
+)
+
+Macroscript PerserveUVs
+category: ~PERSERVEUVS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PERSERVEUVS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		local retVal = false
+		if Ribbon_Modeling.ValidSelection() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			retVal = curmod.preserveUVs
+		)
+		retVal
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()	
+		if keyboard.shiftpressed then
+		(
+			curmod.buttonop #PreserveUVSettings
+		)
+		else 
+		(		
+			curmod.preserveUVs = not curmod.preserveUVs
+		)
+
+	)
+)
+
+Macroscript PerserveUVSettings
+category: ~PERSERVEUVSETTINGS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~PERSERVEUVSETTINGS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.buttonop #PreserveUVSettings
+	)
+)
+
+Macroscript FullyInteractive
+category: ~FULLYINTERACTIVE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~FULLYINTERACTIVE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.fullyinteractive
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.fullyinteractive = not curmod.fullyinteractive
+
+	)
+)
+
+Macroscript RelaxSelection
+category: ~RELAXSELECTION_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~RELAXSELECTION_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if keyboard.shiftpressed then
+		(
+			curmod.popupdialog #Relax
+		)
+		else
+		(
+			if ( Ribbon_Modeling.IsEditablePoly() ) then
+				curmod.Relax()
+			else
+				curmod.ButtonOp #Relax
+		)
+	)
+)
+
+
+Macroscript RelaxSelectionOptions
+category: ~RELAXSELECTIONOPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~RELAXSELECTIONOPTIONS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.popupdialog #Relax
+	)
+)
+
+
+Macroscript CreateMode
+category: ~CREATEMODE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CREATEMODE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSelection() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curCmdMode = curmod.getCommandMode()
+	
+			(curCmdMode == #CreateVertex) or (curCmdMode == #CreateEdge) or (curCmdMode == #CreateFace)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		
+		if ( subobjectlevel == 1 ) then
+			curmod.toggleCommandMode #CreateVertex
+		else if ( Ribbon_Modeling.IsEdgeMode() ) then
+			curmod.toggleCommandMode #CreateEdge
+		else curmod.toggleCommandMode #CreateFace
+	)
+)
+
+
+Macroscript AttachMode
+category: ~ATTACHMODE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ATTACHMODE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSelection() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			
+			(curmod.GetPickMode() == #Attach)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if keyboard.shiftpressed then
+		(
+			if ( Ribbon_Modeling.IsEditablePoly() ) then
+			(		
+				curmod.buttonOp #AttachList
+			)
+			else
+			(
+				curmod.popupdialog #Attach
+			)
+		)
+		else curmod.EnterPickMode #Attach
+	)
+)
+
+
+Macroscript AttachList
+category: ~ATTACHLIST_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~ATTACHLIST_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+		(		
+			curmod.buttonOp #AttachList
+		)
+		else
+		(
+			curmod.popupdialog #Attach
+		)
+	)
+)
+
+Macroscript GeometryCollapse
+category: ~GEOMETRYCOLLAPSE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~GEOMETRYCOLLAPSE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.Collapse (Ribbon_Modeling.GetSOEnum())
+		else
+		(
+			if ( subobjectlevel == 1 ) then
+				curmod.ButtonOp #CollapseVertex
+			else if ( Ribbon_Modeling.IsEdgeMode() ) then
+				curmod.ButtonOp #CollapseEdge
+			else if ( Ribbon_Modeling.IsFaceMode() ) then
+				curmod.ButtonOp #CollapseFace
+		)
+	)
+)
+
+
+Macroscript GeometryDetach
+category: ~GEOMETRYDETACH_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~GEOMETRYDETACH_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ButtonOp #Detach
+		else
+		(
+			local detachLevel = #DetachFace
+			if ( subobjectlevel == 1 ) do detachLevel = #DetachVertex
+			
+			if keyboard.shiftpressed then
+				curmod.ButtonOp detachLevel
+			else
+				curmod.PopupDialog detachLevel
+		)
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Cuts
+---
+--------------------------------------------------------------------
+Macroscript CutsQuickSlice
+category: ~CUTSQUICKSLICE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CUTSQUICKSLICE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+
+	on isChecked do
+	(
+		if( Ribbon_Modeling.ValidSelection() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.getCommandMode() == #QuickSlice)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ToggleCommandMode #QuickSlice
+	)
+)
+
+Macroscript CutsSlicePlane
+category: ~CUTSSLICEPLANE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CUTSSLICEPLANE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+
+	on isChecked do
+	(
+		local retValue = false
+		if( Ribbon_Modeling.ValidSOMode() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			retValue = (curmod.getCommandMode() == #SlicePlane)
+		)
+		retValue
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ToggleCommandMode #SlicePlane
+	)
+)
+
+Macroscript CutsCut
+category: ~CUTSCUT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CUTSCUT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+
+	on isChecked do
+	(
+		if( Ribbon_Modeling.ValidSelection() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmodMode = curmod.getCommandMode()
+			(curmodMode == #Cut) or (curmodMode == #CutVertex) or (curmodMode== #CutEdge) or (curmodMode == #CutFace)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			if ( subobjectlevel == 1 ) then
+				curmod.ToggleCommandMode #CutVertex
+			else if (Ribbon_Modeling.IsEdgeMode()) then
+				curmod.ToggleCommandMode #CutEdge
+			else
+				curmod.ToggleCommandMode #CutFace
+		)
+		else
+		(
+			curmod.ToggleCommandMode #cut
+		)
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Constraints
+---
+--------------------------------------------------------------------
+Macroscript ConstraintsNone
+category: ~CONSTRAINTSNONE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CONSTRAINTSNONE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(		
+			curmod = Modpanel.getcurrentObject()
+			(curmod.constrainType == 0)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.constrainType = 0
+	)
+)
+
+Macroscript ConstraintsEdge
+category: ~CONSTRAINTSEDGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CONSTRAINTSEDGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(		
+			curmod = Modpanel.getcurrentObject()
+			(curmod.constrainType == 1)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.constrainType = 1
+	)
+)
+
+Macroscript ConstraintsFace
+category: ~CONSTRAINTSFACE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CONSTRAINTSFACE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(		
+			curmod = Modpanel.getcurrentObject()
+			(curmod.constrainType == 2)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.constrainType = 2
+	)
+)
+
+Macroscript ConstraintsNormal
+category: ~CONSTRAINTSNORMAL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CONSTRAINTSNORMAL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.constrainType == 3)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.constrainType = 3
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- SubDivision
+---
+--------------------------------------------------------------------
+MacroScript EPoly_Meshsmooth
+Category:~EPOLY_MESHSMOOTH_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_MESHSMOOTH_TOOLTIP~ 
+-- Needs Icon
+(
+	On IsEnabled Return Filters.Is_EPoly()
+	On IsVisible Return Filters.Is_EPoly()
+
+	On Execute Do (
+		Try	(
+			If SubObjectLevel == undefined then Max Modify Mode
+			else
+			(
+				local A = modPanel.getCurrentObject()
+				if keyboard.shiftpressed then A.popupDialog #MeshSmooth
+				else A.buttonOp #MeshSmooth
+			)
+		)
+		Catch(MessageBox ~MSGBOX_OPERATION_FAILED~ Title:~MSGBOX_TITLE~)
+	)
+)
+
+MacroScript EPoly_MeshsmoothOptions
+category: ~EPOLY_MESHSMOOTHOPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+Tooltip:~EPOLY_MESHSMOOTHOPTIONS_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPoly()
+	On IsVisible Return Filters.Is_EPoly()
+
+	On Execute Do (
+		Try (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #MeshSmooth
+		)
+		Catch(MessageBox ~MSGBOX_OPERATION_FAILED_CAPTION~ Title:~MSGBOX_POLY_EDITING_TITLE~)
+	)
+)
+
+MacroScript EPoly_Tessellate
+Category:~EPOLY_TESSELLATE_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_TESSELLATE_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPoly()
+	On IsVisible Return Filters.Is_EPoly()
+
+	On Execute Do (
+		Try	(
+			If SubObjectLevel == undefined then Max Modify Mode
+			else
+			(
+				local A = modPanel.getCurrentObject()
+				if keyboard.shiftpressed then A.popupDialog #Tessellate
+				else A.buttonOp #Tessellate
+			)
+		)
+		Catch(MessageBox ~MSGBOX_OP_FAILED_CAPTION~ Title:~POLY_EDITING_TITLE~)
+	)
+	On AltExecute type Do (
+		Try (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #Tessellate
+		)
+		Catch(MessageBox ~MSGB_OP_FAILED_CAPTION~ Title:~MSGB_OP_FAILED_TITLE~)
+	)
+)
+
+MacroScript EPoly_TessellateOptions
+category: ~EPOLY_TESSELLATEOPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+Tooltip:~EPOLY_TESSELLATEOPTIONS_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPoly()
+	On IsVisible Return Filters.Is_EPoly()
+
+	On Execute Do (
+		Try (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #Tessellate
+		)
+		Catch(MessageBox ~MSGBOX_OP_FAILED_POLY_EDIT_CAPTION~ Title:~MSGBOX_OP_FAILED_POLY_EDIT_TITLE~)
+	)
+)
+
+Macroscript UseNURMS
+category: ~USENURMS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~USENURMS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.surfSubdivide
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.surfSubdivide = not curmod.surfSubdivide
+
+	)
+)
+
+Macroscript UseDisplacement
+category: ~USEDISPLACEMENT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~USEDISPLACEMENT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.useSubdivisionDisplacement
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.useSubdivisionDisplacement = not curmod.useSubdivisionDisplacement
+
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- NURMS
+---
+--------------------------------------------------------------------
+
+Macroscript NURMSIsolineDisplay
+category: ~NURMSISOLINEDISPLAY_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSISOLINEDISPLAY_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.isolineDisplay
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.isolineDisplay = not curmod.isolineDisplay
+
+	)
+)
+
+Macroscript NURMSShowCage
+category: ~NURMSSHOWCAGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSSHOWCAGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.showcage
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.showcage = not curmod.showcage
+
+	)
+)
+
+Macroscript NURMSSmoothResult
+category: ~NURMSSMOOTHRESULT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSSMOOTHRESULT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.subdivSmoothing
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.subdivSmoothing = not curmod.subdivSmoothing
+
+	)
+)
+
+Macroscript NURMSRenderIterations
+category: ~NURMSRENDERITERATIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSRENDERITERATIONS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.useRenderIterations
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.useRenderIterations = not curmod.useRenderIterations
+
+	)
+)
+
+
+Macroscript NURMSRenderSmoothness
+category: ~NURMSRENDERSMOOTHNESS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSRENDERSMOOTHNESS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.useRenderSmoothness
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.useRenderSmoothness = not curmod.useRenderSmoothness
+
+	)
+)
+
+Macroscript NURMSForceDivision
+category: ~NURMSFORCEDIVISION_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSFORCEDIVISION_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.forceSubdivision()
+
+	)
+)
+
+
+
+Macroscript NURMSUpdateAlways
+category: ~NURMSUPDATEALWAYS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSUPDATEALWAYS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on execute do 
+	(
+		RibbonNURMSUpdateType = 1
+		curmod = Modpanel.getcurrentObject()
+		curmod.update = 0
+	)
+)
+
+Macroscript NURMSUpdateRender
+category: ~NURMSUPDATERENDER_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSUPDATERENDER_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on execute do 
+	(
+		RibbonNURMSUpdateType = 2
+		curmod = Modpanel.getcurrentObject()
+		curmod.update = 1
+	)
+)
+
+Macroscript NURMSUpdateManual
+category: ~NURMSUPDATEMANUAL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~NURMSUPDATEMANUAL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on execute do 
+	(
+		RibbonNURMSUpdateType = 3
+		curmod = Modpanel.getcurrentObject()
+		curmod.update = 2
+	)
+)
+--------------------------------------------------------------------
+---
+--- Displacement
+---
+--------------------------------------------------------------------
+
+Macroscript DisplSplitMesh
+category: ~DISPLSPLITMESH_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLSPLITMESH_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.displaceSplitMesh
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceSplitMesh = not curmod.displaceSplitMesh
+
+	)
+)
+
+
+Macroscript DisplViewDependent
+category: ~DISPLVIEWDEPENDENT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLVIEWDEPENDENT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if Ribbon_Modeling.IsEditablePoly() then 
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.viewDependent
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.viewDependent = not curmod.viewDependent
+
+	)
+)
+
+Macroscript DisplPresetLow
+category: ~DISPLPRESETLOW_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLPRESETLOW_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceEdge = 20
+		curmod.displaceDistance = 20
+		curmod.displaceAngle = 10
+		curmod.displaceMaxLevels = 2
+	)
+)
+
+Macroscript DisplPresetMed
+category: ~DISPLPRESETMED_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLPRESETMED_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceEdge = 10
+		curmod.displaceDistance = 10
+		curmod.displaceAngle = 4
+		curmod.displaceMaxLevels = 3
+	)
+)
+
+Macroscript DisplPresetHigh
+category: ~DISPLPRESETHIGH_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~DISPLPRESETHIGH_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceEdge = 5
+		curmod.displaceDistance = 5
+		curmod.displaceAngle = 2
+		curmod.displaceMaxLevels = 4
+	)
+)
+
+Macroscript SubDMethodRegular
+category: ~SUBDMETHODREGULAR_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBDMETHODREGULAR_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.displaceMethod == 0)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		RibbonDisplacementType = 1
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceMethod = 0
+	)
+)
+
+Macroscript SubDMethodSpatial
+category: ~SUBDMETHODSPATIAL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBDMETHODSPATIAL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.displaceMethod == 1)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		RibbonDisplacementType = 2
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceMethod = 1
+	)
+)
+
+Macroscript SubDMethodCurvature
+category: ~SUBDMETHODCURVATURE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBDMETHODCURVATURE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.displaceMethod == 2)
+		)
+		else
+		(
+			false
+		)
+
+	)
+	
+	on execute do 
+	(
+		RibbonDisplacementType = 3
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceMethod = 2
+	)
+)
+
+Macroscript SubDMethodSpatialAndCurvature
+category: ~SUBDMETHODSPATIALANDCURVATURE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBDMETHODSPATIALANDCURVATURE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly()
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.displaceMethod == 3)
+		)
+		else
+		(
+			false
+		)
+
+	)
+	
+	on execute do 
+	(
+		RibbonDisplacementType = 4
+		curmod = Modpanel.getcurrentObject()
+		curmod.displaceMethod = 3
+	)
+)
+--------------------------------------------------------------------
+---
+--- Modify Selection
+---
+--------------------------------------------------------------------
+
+
+Macroscript ShrinkSelection
+category: ~SHRINKSELECTION_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SHRINKSELECTION_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ShrinkSelection()
+		else
+			curmod.ButtonOp #ShrinkSelection
+	)
+)
+
+Macroscript GrowSelection
+category: ~GROWSELECTION_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~GROWSELECTION_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.GrowSelection()
+		else
+			curmod.ButtonOp #GrowSelection
+	)
+)
+
+
+--------------------------------------------------------------------
+---
+--- Select
+---
+--------------------------------------------------------------------
+
+Macroscript SelectByVertex
+category: ~SELECTBYVERTEX_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTBYVERTEX_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel != 1)
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectByVertex
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.selectByVertex = not curmod.selectByVertex
+	)
+)
+
+
+Macroscript SelectByAngle
+category: ~SELECTBYANGLE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTBYANGLE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 4)
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSOMode()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.selectByAngle
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.selectByAngle= not curmod.selectByAngle
+	)
+)
+
+
+--------------------------------------------------------------------
+---
+--- Select Ring/Loop
+---
+--------------------------------------------------------------------
+
+Macroscript SelectEdgeRing
+category: ~SELECTEDGERING_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTEDGERING_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and Ribbon_Modeling.IsEdgeMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.SelectEdgeRing()
+		else
+			curmod.ButtonOp #SelectEdgeRing
+	)
+)
+
+Macroscript SelectEdgeLoop
+category: ~SELECTEDGELOOP_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTEDGELOOP_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and Ribbon_Modeling.IsEdgeMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.SelectEdgeLoop()
+		else
+			curmod.ButtonOp #SelectEdgeLoop
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Color
+---
+--------------------------------------------------------------------
+
+Macroscript SelectVertByColor
+category: ~SELECTVERTBYCOLOR_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTVERTBYCOLOR_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly() and (subobjectlevel == 1)
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() and (subobjectlevel == 1) ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.vertSelectBy == 0)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		RibbonColorIllumSelectType = 1
+		curmod = Modpanel.getcurrentObject()
+		curmod.vertSelectBy = 0
+	)
+)
+
+Macroscript SelectVertByIllum
+category: ~SELECTVERTBYILLUM_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTVERTBYILLUM_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly() and (subobjectlevel == 1)
+	)
+	
+	on isChecked do
+	(
+		if( Ribbon_Modeling.IsEditablePoly() and (subobjectlevel == 1) ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.vertSelectBy == 1)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		RibbonColorIllumSelectType = 2
+		curmod = Modpanel.getcurrentObject()
+		curmod.vertSelectBy = 1
+	)
+)
+
+Macroscript SelectByVertexColor
+category: ~SELECTBYVERTEXCOLOR_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTBYVERTEXCOLOR_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.IsEditablePoly() and (subobjectlevel == 1)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ButtonOp #SelectByVertexColor 
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Sub-object Specific Actions - Vertex/Edge
+---
+--------------------------------------------------------------------
+
+Macroscript VertexWeld
+category: ~VERTEXWELD_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~VERTEXWELD_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and ((subobjectlevel == 1) or (subobjectlevel ==2) )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.weldFlaggedVertices()
+		else
+			curmod.ButtonOp #WeldVertex
+	)
+)
+
+
+Macroscript VertexRemove
+category: ~VERTEXREMOVE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~VERTEXREMOVE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and ((subobjectlevel == 1) or (subobjectlevel ==2) )
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.remove()
+		else
+			curmod.ButtonOp #RemoveVertex
+	)
+)
+
+MacroScript EPoly_Chamfer
+Category:~EPOLY_CHAMFER_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_CHAMFER_TOOLTIP~ 
+(
+	-- Active in Vertex, Edge, Border levels:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..4}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{2..4}
+	On IsChecked Do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			local A = modPanel.getCurrentObject()
+			local mode = A.GetCommandMode()
+			(mode == #ChamferVertex) or (mode == #ChamferEdge)
+		)
+		else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			-- default to Edge level:
+			if subobjectLevel > 3 then subobjectLevel = 2
+			if subobjectLevel == 0 then subobjectLevel = 2
+			if keyboard.shiftpressed then
+			(
+				if (Filters.Is_This_EditPolyMod A) then
+				(
+					if (subobjectLevel == 1) then (A.PopupDialog #ChamferVertex)
+					else (A.PopupDialog #ChamferEdge)
+				)
+				else (A.popupDialog #Chamfer)
+			)
+			else
+			(
+				if subobjectLevel == 1 then (A.toggleCommandMode #ChamferVertex)
+				else (A.toggleCommandMode #ChamferEdge)
+			)
+		)
+		Catch(MessageBox ~MB_OP_FAILED_CAPTION~ Title:~MB_OP_FAILED_TITLE~)
+	)
+)
+
+MacroScript EPoly_ChamferOptions
+category: ~EPOLY_CHAMFEROPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_CHAMFEROPTIONS_TOOLTIP~
+(
+	-- Active in Vertex, Edge, Border levels:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..4}
+
+	On Execute do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			-- default to Edge level:
+			if subobjectLevel > 3 then subobjectLevel = 2
+			if subobjectLevel == 0 then subobjectLevel = 2
+			if (Filters.Is_This_EditPolyMod A) then
+			(
+				if (subobjectLevel == 1) then (A.PopupDialog #ChamferVertex)
+				else (A.PopupDialog #ChamferEdge)
+			)
+			else (A.popupDialog #Chamfer)
+		)
+		Catch(MessageBox ~OP_FAILED_POLY_EDITING_CAPTION~ Title:~OP_FAILED_POLY_EDITING_TITLE~)
+	)
+)
+
+MacroScript EPoly_Extrude
+Category:~EPOLY_EXTRUDE_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_EXTRUDE_TOOLTIP~ 
+(
+	-- Active in any SO level:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{2..5}
+	On IsChecked Do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			local A = modPanel.getCurrentObject()
+			local mode = A.GetCommandMode()
+			(mode == #ExtrudeVertex) or (mode == #ExtrudeEdge) or (mode == #ExtrudeFace)
+		)
+		else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			-- default to Face level:
+			if subobjectLevel == 0 then subobjectLevel = 4
+			if subobjectLevel == 5 then subobjectLevel = 4
+			local A = modPanel.getCurrentObject()
+			msl = A.GetMeshSelLevel ()
+			if keyboard.shiftpressed then
+			(
+				if (Filters.Is_This_EditPolyMod A) then
+				(
+					if (msl == #Vertex) then (A.PopupDialog #ExtrudeVertex)
+					else if (msl == #Edge) then (A.PopupDialog #ExtrudeEdge)
+					else if (msl == #Face) then (A.PopupDialog #ExtrudeFace)
+				)
+				else (A.popupDialog #Extrude)
+			)
+			else
+			(
+				if msl == #vertex then (A.toggleCommandMode #ExtrudeVertex)
+				if msl == #edge then (A.toggleCommandMode #ExtrudeEdge)
+				if msl == #face then (A.toggleCommandMode #ExtrudeFace)
+			)
+		)
+		Catch(MessageBox ~MSGBOX_EPOLY_EXTRUDE_OP_FAILED_CAPTION~ Title:~MSGBOX_EPOLY_EXTRUDE_OP_FAILED_TITLE~)
+	)
+)
+
+MacroScript EPoly_ExtrudeOptions
+category: ~EPOLY_EXTRUDEOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_EXTRUDEOPTIONS_TOOLTIP~
+(
+	-- Active in Vertex, Edge, Border and Face levels:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..5}
+
+	On Execute do (
+	Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			-- default to Face level:
+			if subobjectLevel == 0 then subobjectLevel = 4
+			local A = modPanel.getCurrentObject()
+			if (Filters.Is_This_EditPolyMod A) then
+			(
+				local level = A.GetMeshSelLevel()
+				if (level == #Vertex) then (A.PopupDialog #ExtrudeVertex)
+				else if (level == #Edge) then (A.PopupDialog #ExtrudeEdge)
+				else if (level == #Face) then (A.PopupDialog #ExtrudeFace)
+			)
+			else (A.popupDialog #Extrude)
+		)
+		Catch(MessageBox ~MSGBOX_EPOLY_EXTRUDEOPTIONS_CAPTION~ Title:~MSGBOX_EPOLY_EXTRUDEOPTIONS_TITLE~)
+	)
+)
+
+MacroScript EPoly_Weld
+Category:~EPOLY_WELD_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_WELD_TOOLTIP~ 
+(
+	-- Active in Vertex, Edge levels:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..3}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{2..3}
+
+	On Execute Do (
+		Try (
+			if subobjectlevel == undefined then max modify mode
+			local A = modPanel.getCurrentObject()
+			if Filters.Is_This_EditPolyMod A then 
+			(
+				if keyboard.shiftpressed then
+				(
+					if (subobjectLevel == 1) then A.PopupDialog #WeldVertex
+					else A.popupDialog #WeldEdge
+				)
+				else
+				(
+					if (subobjectLevel == 1) then A.ButtonOp #WeldVertex
+					else A.buttonOp #WeldEdge
+				)
+			)
+			else
+			(
+				if keyboard.shiftpressed then A.popupDialog #WeldSelected
+				else A.buttonOp #WeldSelected
+			)
+		)
+		Catch(MessageBox ~MSGBOX_EPOLY_WELD_CAPTION~ Title:~MSGBOX_EPOLY_WELD_TITLE~)
+	)
+)
+
+MacroScript EPoly_WeldOptions
+category: ~EPOLY_WELDOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_WELDOPTIONS_TOOLTIP~
+(
+	-- Active in Vertex, Edge, Border levels:
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{2..4}
+
+	On Execute do (
+	Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if Filters.Is_This_EditPolyMod A then
+			(
+				if (subobjectLevel == 1) then A.PopupDialog #WeldVertex
+				else A.popupDialog #WeldEdge
+			)
+			else A.popupDialog #WeldSelected
+		)
+		Catch(MessageBox ~EPOLY_WELDOPTIONS_CAPTION~ Title:~EPOLY_WELDOPTIONS_TITLE~)
+	)
+)
+
+MacroScript EPoly_Inset
+Category:~EPOLY_INSET_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_INSET_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsChecked Do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			local A = modPanel.getCurrentObject()
+			A.GetCommandMode() == #InsetFace
+		)
+		else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #Inset
+			else A.toggleCommandMode #InsetFace
+		)
+		Catch(MessageBox ~EPOLY_INSET_CAPTION~ Title:~EPOLY_INSET_TITLE~)
+	)
+)
+
+MacroScript EPoly_InsetOptions
+category: ~EPOLY_INSETOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_INSETOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #Inset
+	)
+)
+
+MacroScript EPoly_Outline
+Category:~EPOLY_OUTLINE_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_OUTLINE_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsChecked Do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			local A = modPanel.getCurrentObject()
+			A.GetCommandMode() == #OutlineFace
+		)
+		else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #Outline
+			else A.toggleCommandMode #OutlineFace
+		)
+		Catch(MessageBox ~MSGBOX_EPOLY_OUTLINE_CAPTION~ Title:~MSGBOX_EPOLY_OUTLINE_TITLE~)
+	)
+)
+
+MacroScript EPoly_OutlineOptions
+category: ~EPOLY_OUTLINEOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_OUTLINEOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #Outline
+	)
+)
+
+MacroScript EPoly_Bevel
+Category:~EPOLY_BEVEL_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_BEVEL_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsChecked Do
+	(
+			if Ribbon_Modeling.ValidSOMode() then
+			(
+				local A = modPanel.getCurrentObject()
+				A.GetCommandMode() == #Bevel
+			)
+			else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #Bevel
+			else A.toggleCommandMode #Bevel
+		)
+		Catch(MessageBox ~EPOLY_BEVEL_OP_FAILED~ Title:~EPOLY_BEVEL_OP_FAILED_TITLE~)
+	)
+)
+
+MacroScript EPoly_BevelOptions
+category: ~EPOLY_BEVELOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_BEVELOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #Bevel
+	)
+)
+
+MacroScript EPoly_Hinge
+Category:~EPOLY_HINGE_CATEGORY~ 
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_HINGE_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsChecked Do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			local A = modPanel.getCurrentObject()
+			A.GetCommandMode() == #HingeFromEdge
+		)
+		else false
+	)
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #HingeFromEdge
+			else A.toggleCommandMode #HingeFromEdge
+		)
+		Catch(MessageBox ~EPOLY_HINGE_CAPTION~ Title:~EPOLY_HINGE_TITLE~)
+	)
+)
+
+MacroScript EPoly_HingeOptions
+category: ~EPOLY_HINGEOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_HINGEOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #HingeFromEdge
+	)
+)
+
+MacroScript EPoly_Extrude_Along_Spline
+Category:~EPOLY_EXTRUDE_ALONG_SPLINE_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+Tooltip:~EPOLY_EXTRUDE_ALONG_SPLINE_TOOLTIP~ 
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+	On IsVisible Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute Do (
+		Try (
+			If SubObjectLevel == undefined then Max Modify Mode
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #ExtrudeAlongSpline
+			else A.enterPickMode #pickShape
+		)
+		Catch(MessageBox ~EPOLY_EXTRUDE_ALONG_SPLINE_CAPTION~ Title:~EPOLY_EXTRUDE_ALONG_SPLINE_TITLE~)
+	)
+)
+
+MacroScript EPoly_ExtrudeAlongSplineOptions
+category: ~EPOLY_EXTRUDEALONGSPLINEOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~EPOLY_EXTRUDEALONGSPLINEOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{5}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #ExtrudeAlongSpline
+	)
+)
+
+MacroScript ConnectEdges
+category: ~CONNECTEDGES_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~CONNECTEDGES_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{3..4}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			if keyboard.shiftpressed then A.popupDialog #ConnectEdges
+			else A.buttonOp #ConnectEdges
+	)
+)
+
+MacroScript ConnectEdgesOptions
+category: ~CONNECTEDGESOPTIONS_CATEGORY~
+internalCategory:"Ribbon - Modeling" 
+tooltip: ~CONNECTEDGESOPTIONS_TOOLTIP~
+(
+	On IsEnabled Return Filters.Is_EPolySpecifyLevel #{3..4}
+
+	On Execute do (
+			local A = modPanel.getCurrentObject()
+			A.popupDialog #ConnectEdges
+	)
+)
+
+Macroscript PolyBridge
+category: ~POLYBRIDGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~POLYBRIDGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 4)
+	)
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			curmod = Modpanel.getcurrentObject()
+			mode = curmod.GetCommandMode() 
+			mode == 23 or mode == #BridgePolygon
+		)
+		else false
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			if keyboard.shiftpressed then curmod.popupDialog #BridgePolygon
+			else
+			(
+				if curmod.ReadyToBridgeFlagged() then
+				(
+					curmod.bridgeSelected = 1 --use selected faces
+					curmod.Bridge()
+				)
+				else curmod.ToggleCommandMode 23 --bridge face mode
+			)
+		)
+		else
+		(
+			if keyboard.shiftpressed then curmod.popupDialog #BridgePolygon
+			else
+			(
+				if EditPolyModReadyToBridge() then curmod.ButtonOp #BridgePolygon
+				else curmod.ToggleCommandMode #BridgePolygon
+			)
+		)
+	)
+)
+
+Macroscript PolyBridgeOptions
+category: ~POLYBRIDGEOPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~POLYBRIDGEOPTIONS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 4)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.popupDialog #BridgePolygon
+	)
+)
+
+Macroscript TurnEdge
+category: ~TURNEDGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~TURNEDGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel != 1)
+	)
+
+	on isChecked do
+	(
+		if( Ribbon_Modeling.ValidSOMode() and (subobjectlevel != 1) ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.getCommandMode() == #turnedge)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ToggleCommandMode #turnedge
+	)
+)
+
+Macroscript EditTriangulation
+category: ~EDITTRIANGULATION_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDITTRIANGULATION_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel != 1)
+	)
+
+	on isChecked do
+	(
+		if( Ribbon_Modeling.ValidSOMode() and (subobjectlevel != 1) ) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			(curmod.getCommandMode() == #EditTriangulation)
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ToggleCommandMode #EditTriangulation
+	)
+)
+
+Macroscript Retriangulate
+category: ~RETRIANGULATE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~RETRIANGULATE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 4 or subobjectlevel == 5)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ButtonOp #Retriangulate
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Sub-object Specific Actions - Vertex
+---
+--------------------------------------------------------------------
+
+Macroscript VertexBreak
+category: ~VERTEXBREAK_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~VERTEXBREAK_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 1)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ButtonOp #BreakVertex
+	)
+)
+
+
+Macroscript RemoveUnusedMapVerts
+category: ~REMOVEUNUSEDMAPVERTS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~REMOVEUNUSEDMAPVERTS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 1)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.DeleteIsoMapVerts()
+		else
+			curmod.ButtonOp #RemoveIsoMapVerts
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Sub-object Specific Actions - Edges
+---
+--------------------------------------------------------------------
+
+Macroscript EdgeSplit
+category: ~EDGESPLIT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDGESPLIT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 2)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.splitEdges()
+		else
+			curmod.ButtonOp #SplitEdges
+	)
+)
+
+
+Macroscript EdgeBridge
+category: ~EDGEBRIDGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDGEBRIDGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 2 or subobjectlevel == 3)
+	)
+	on isChecked do
+	(
+		if Ribbon_Modeling.ValidSOMode() then
+		(
+			curmod = Modpanel.getcurrentObject()
+			mode = curmod.GetCommandMode()
+			if ( Ribbon_Modeling.IsEditablePoly() ) then
+			(
+				mode == 27 or mode == 22
+			)
+			else
+			(
+				mode == 25 or mode == #BridgeBorder
+			)
+		)
+		else false
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+		(
+			if keyboard.shiftpressed then
+			(
+				if subobjectlevel == 2 then curmod.popupDialog #BridgeEdge
+				else curmod.popupDialog #BridgeBorder
+			)
+			else
+			(
+				if curmod.ReadyToBridgeFlagged() then
+				(
+					curmod.bridgeSelected = 1 --use selected edges/borders
+					curmod.Bridge()
+				)
+				else
+				(
+					if subobjectlevel == 2 then curmod.ToggleCommandMode 27 --bridge edge mode
+					else curmod.ToggleCommandMode 22 --bridge border mode
+				)
+			)
+		)
+		else
+		(
+			if keyboard.shiftpressed then
+			(
+				if subobjectlevel == 2 then curmod.popupDialog #BridgeEdge
+				else curmod.popupDialog #BridgeBorder
+			)
+			else
+			(
+				if EditPolyModReadyToBridge() then
+				(
+					if subobjectlevel == 2 then curmod.ButtonOp #BridgeEdge
+					else curmod.ButtonOp #BridgeBorder
+				)
+				else
+				(
+					if subobjectlevel == 2 then curmod.ToggleCommandMode 25 --bridge edge mode
+					else curmod.ToggleCommandMode #BridgeBorder
+				)
+			)
+		)
+	)
+)
+
+Macroscript EdgeBridgeOptions
+category: ~EDGEBRIDGEOPTIONS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDGEBRIDGEOPTIONS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 2 or subobjectlevel == 3)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if subobjectlevel == 2 then curmod.popupDialog #BridgeEdge
+		else curmod.popupDialog #BridgeBorder
+	)
+)
+
+Macroscript EdgeConnect
+category: ~EDGECONNECT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDGECONNECT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 2)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ConnectEdges()
+		else
+			curmod.ButtonOp #ConnectEdges
+	)
+)
+
+Macroscript EdgeRemove
+category: ~EDGEREMOVE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~EDGEREMOVE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and (subobjectlevel == 2)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then curmod.Remove()
+		else curmod.ButtonOp #RemoveEdge
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Sub-object Specific Actions - Poly/Element
+---
+--------------------------------------------------------------------
+
+Macroscript FaceFlip
+category: ~FACEFLIP_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~FACEFLIP_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode() and Ribbon_Modeling.IsFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.flipNormals 1
+		else
+			curmod.ButtonOp #FlipFace
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Slice Mode
+---
+--------------------------------------------------------------------
+Macroscript SliceSplit
+category: ~SLICESPLIT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SLICESPLIT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection()
+	)
+	
+	on isChecked do
+	(
+		if (Ribbon_Modeling.ValidSelection()) then
+		(
+			curmod = Modpanel.getcurrentObject()
+			curmod.split
+		)
+		else
+		(
+			false
+		)
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.split = not curmod.split
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Visibility
+---
+--------------------------------------------------------------------
+
+Macroscript HideSelected
+category: ~HIDESELECTED_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~HIDESELECTED_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and (Ribbon_Modeling.IsFaceMode() or (subobjectlevel == 1))
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.Hide (Ribbon_Modeling.GetSOEnum())
+		else 
+		(
+			if (subobjectLevel == 1 ) then
+				curmod.ButtonOp #HideVertex
+			else
+				curmod.ButtonOp #HideFace
+		)
+	)
+)
+
+
+Macroscript HideUnSelected
+category: ~HIDEUNSELECTED_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~HIDEUNSELECTED_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and (Ribbon_Modeling.IsFaceMode() or (subobjectlevel == 1))
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ButtonOp #HideUnselected
+		else 
+		(
+			if (subobjectLevel == 1 ) then
+				curmod.ButtonOp #HideUnselectedVertex
+			else
+				curmod.ButtonOp #HideUnselectedFace
+		)
+	)
+)
+
+Macroscript UnhideAll
+category: ~UNHIDEALL_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~UNHIDEALL_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and (Ribbon_Modeling.IsFaceMode() or (subobjectlevel == 1))
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.ButtonOp #UnHideAll
+		else 
+		(
+			if (subobjectLevel == 1 ) then
+				curmod.ButtonOp #UnHideAllVertex
+			else
+				curmod.ButtonOp #UnHideAllFace
+		)
+	)
+)
+
+
+--------------------------------------------------------------------
+---
+--- Smoothing Groups
+---
+--------------------------------------------------------------------
+
+Macroscript AutoSmooth
+category: ~AUTOSMOOTH_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~AUTOSMOOTH_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and Ribbon_Modeling.IsFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.autosmooth()
+		else
+			curmod.ButtonOp #Autosmooth
+	)
+)
+
+Macroscript ClearAllSmoothingGroups
+category: ~CLEARALLSMOOTHINGGROUPS_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CLEARALLSMOOTHINGGROUPS_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and Ribbon_Modeling.IsFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then
+			curmod.setSmoothingGroups 0
+		else 
+		(
+			curmod.smoothingGroupsToSet = 0
+			curmod.smoothingGroupsToClear = -1
+		)
+	)
+)
+
+
+
+--------------------------------------------------------------------
+---
+--- Smoothing Groups
+---
+--------------------------------------------------------------------
+Macroscript StoredSelectionCopy
+category: ~STOREDSELECTIONCOPY_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~STOREDSELECTIONCOPY_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ButtonOp #NamedSelectionCopy
+	)
+)
+
+Macroscript StoredSelectionPaste
+category: ~STOREDSELECTIONPASTE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~STOREDSELECTIONPASTE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.ButtonOp #NamedSelectionPaste
+	)
+)
+
+--------------------------------------------------------------------
+---
+--- Properties
+---
+--------------------------------------------------------------------
+Macroscript MaterialIDDialog
+category: ~MATERIALIDDIALOG_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~MATERIALIDDIALOG_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and Ribbon_Modeling.isFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.MatIDFloater()
+	)
+)
+
+Macroscript SmoothingGroupsDialog
+category: ~SMOOTHINGGROUPSDIALOG_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SMOOTHINGGROUPSDIALOG_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and Ribbon_Modeling.isFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		curmod.SmGrpFloater()
+	)
+)
+
+Macroscript SelectBySmoothingGroupsDialog
+category: ~SELECTBYSMOOTHINGGROUPSDIALOG_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SELECTBYSMOOTHINGGROUPSDIALOG_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and Ribbon_Modeling.isFaceMode()
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then curmod.buttonOp #SelectBySmoothingGroups
+		else curmod.SmGrpFloater()
+	)
+)
+
+Macroscript Cap
+category: ~CAP_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CAP_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 3
+	)
+	
+	on execute do 
+	(
+		curmod = Modpanel.getcurrentObject()
+		if ( Ribbon_Modeling.IsEditablePoly() ) then curmod.capHoles #Edge
+		else if ( Ribbon_Modeling.IsEditPolyMode() ) do curmod.ButtonOp #Cap
+	)
+)
+
+Macroscript CaddyFalloff
+category: ~CADDYFALLOFF_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYFALLOFF_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #ssfalloff
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #ssfalloff
+		epolymanipgrip.setmanipulategrip  val #ssfalloff
+	)
+)
+
+Macroscript CaddyBubble
+category: ~CADDYBUBBLE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYBUBBLE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #ssbubble
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #ssbubble
+		epolymanipgrip.setmanipulategrip val #ssbubble
+	)
+)
+
+Macroscript CaddyPinch
+category: ~CADDYPINCH_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYPINCH_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #sspinch
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #sspinch
+		epolymanipgrip.setmanipulategrip val #sspinch
+	)
+)
+
+Macroscript CaddySetFlow
+category: ~CADDYSETFLOW_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYSETFLOW_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #setflow
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #setflow
+		epolymanipgrip.setmanipulategrip val #setflow
+	)
+)
+
+Macroscript CaddyLoopShift
+category: ~CADDYLOOPSHIFT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYLOOPSHIFT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #loopshift
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #loopshift
+		epolymanipgrip.setmanipulategrip val #loopshift
+	)
+)
+
+Macroscript CaddyRingShift
+category: ~CADDYRINGSHIFT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYRINGSHIFT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #ringshift
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #ringshift
+		epolymanipgrip.setmanipulategrip val #ringshift
+	)
+)
+
+Macroscript CaddyEdgeCrease
+category: ~CADDYEDGECREASE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYEDGECREASE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #edgecrease
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #edgecrease
+		epolymanipgrip.setmanipulategrip val #edgecrease
+	)
+)
+
+Macroscript CaddyEdgeWeight
+category: ~CADDYEDGEWEIGHT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYEDGEWEIGHT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #edgeweight
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #edgeweight
+		epolymanipgrip.setmanipulategrip val #edgeweight
+	)
+)
+
+Macroscript CaddyVertexWeight
+category: ~CADDYVERTEXWEIGHT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYVERTEXWEIGHT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #vertexweight
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #vertexweight
+		epolymanipgrip.setmanipulategrip val #vertexweight
+	)
+)
+
+Macroscript CaddyVertexCrease
+category: ~CADDYVERTEXCREASE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~CADDYVERTEXCREASE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		Ribbon_Modeling.ValidSOMode()
+	)
+	
+	on isChecked do
+	(
+		epolymanipgrip.getmanipulategrip #vertexcrease
+	)
+	
+	on execute do 
+	(
+		local val = not epolymanipgrip.getmanipulategrip #vertexcrease
+		epolymanipgrip.setmanipulategrip val #vertexcrease
+	)
+)
+
+Macroscript SubobjectConvertObject
+category: ~SUBOBJECTCONVERTOBJECT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTOBJECT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass
+	)
+	on isChecked do
+	(
+		selection.count > 0 and (not Ribbon_Modeling.ValidSelection() or subobjectlevel == 0)
+	)
+	on execute do 
+	(
+		if subobjectlevel != 0 do Ribbon_Modeling.SubobjectSwitch 0 
+	)
+)
+
+Macroscript SubobjectConvertVertex
+category: ~SUBOBJECTCONVERTVERTEX_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTVERTEX_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass and mcrUtils.ValidMod EditPolyMod
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 1
+	)
+	on execute do 
+	(
+		if subobjectlevel == 1 then subobjectlevel = 0
+		else Ribbon_Modeling.SubobjectSwitch 1
+	)
+)
+
+Macroscript SubobjectConvertEdge
+category: ~SUBOBJECTCONVERTEDGE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTEDGE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass and mcrUtils.ValidMod EditPolyMod
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 2
+	)
+	on execute do 
+	(
+		if subobjectlevel == 2 then subobjectlevel = 0
+		else Ribbon_Modeling.SubobjectSwitch 2
+	)
+)
+
+Macroscript SubobjectConvertBorder
+category: ~SUBOBJECTCONVERTBORDER_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTBORDER_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass and mcrUtils.ValidMod EditPolyMod
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 3
+	)
+	on execute do 
+	(
+		if subobjectlevel == 3 then subobjectlevel = 0
+		else Ribbon_Modeling.SubobjectSwitch 3
+	)
+)
+
+Macroscript SubobjectConvertPolygon
+category: ~SUBOBJECTCONVERTPOLYGON_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTPOLYGON_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass and mcrUtils.ValidMod EditPolyMod
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 4
+	)
+	on execute do 
+	(
+		if subobjectlevel == 4 then subobjectlevel = 0
+		else Ribbon_Modeling.SubobjectSwitch 4
+	)
+)
+
+Macroscript SubobjectConvertElement
+category: ~SUBOBJECTCONVERTELEMENT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTELEMENT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass GeometryClass and mcrUtils.ValidMod EditPolyMod
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidSelection() and subobjectlevel == 5
+	)
+	on execute do 
+	(
+		if subobjectlevel == 5 then subobjectlevel = 0
+		else Ribbon_Modeling.SubobjectSwitch 5
+	)
+)
+
+
+
+Macroscript SubobjectConvertESplineVertex
+category: ~SUBOBJECTCONVERTESPLINEVERTEX_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTESPLINEVERTEX_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass Shape and mcrUtils.ValidMod Edit_Spline
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidESplineSelection() and subobjectlevel == 1
+	)
+	on execute do 
+	(
+		if subobjectlevel == 1 then subobjectlevel = 0
+		else Ribbon_Modeling.ESplineSubobjectSwitch 1
+	)
+)
+
+Macroscript SubobjectConvertESplineSegment
+category: ~SUBOBJECTCONVERTESPLINESEGMENT_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTESPLINESEGMENT_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass Shape and mcrUtils.ValidMod Edit_Spline
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidESplineSelection() and subobjectlevel == 2
+	)
+	on execute do 
+	(
+		if subobjectlevel == 2 then subobjectlevel = 0
+		else Ribbon_Modeling.ESplineSubobjectSwitch 2
+	)
+)
+
+Macroscript SubobjectConvertESplineSpline
+category: ~SUBOBJECTCONVERTESPLINESPLINE_CATEGORY~
+internalCategory: "Ribbon - Modeling"
+tooltip: ~SUBOBJECTCONVERTESPLINESPLINE_TOOLTIP~
+(
+	on isEnabled do
+	(
+		selection.count > 0 and Main_Ribbon.AllAreSuperclass Shape and mcrUtils.ValidMod Edit_Spline
+	)
+	on isChecked do
+	(
+		Ribbon_Modeling.ValidESplineSelection() and subobjectlevel == 3
+	)
+	on execute do 
+	(
+		if subobjectlevel == 3 then subobjectlevel = 0
+		else Ribbon_Modeling.ESplineSubobjectSwitch 3
+	)
+)
+
