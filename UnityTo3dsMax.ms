@@ -1,11 +1,11 @@
 ﻿rollout ModelSettings "UnityTo3dsMax" width:386 height:344
 (
 	groupBox 'grp01' "模型处理" pos:[12,9] width:226 height:160 align:#left
-	button 'Quadrify' "Quadrify All(三角面转四边面)" pos:[47,68] width:168 height:26 align:#left
-	button 'VertexWeld' "顶点焊接" pos:[46,102] width:84 height:26 align:#left
-	checkbox 'Quadrifychk' "Checkbox" pos:[28,73] width:11 height:14 align:#left
-	checkbox 'VertexWeldchk' "Checkbox" pos:[28,108] width:12 height:13 align:#left
-	spinner 'WeldValue' "" pos:[140,108] width:76 height:16 range:[0,1,0.001] align:#left
+	button 'Quadrify' "Quadrify All(三角面转四边面)" pos:[47,100] width:168 height:26 align:#left
+	button 'VertexWeld' "顶点焊接" pos:[48,66] width:84 height:26 align:#left
+	checkbox 'Quadrifychk' "Checkbox" pos:[29,111] width:11 height:14 align:#left
+	checkbox 'VertexWeldchk' "Checkbox" pos:[28,73] width:12 height:13 align:#left
+	spinner 'WeldValue' "" pos:[140,72] width:76 height:16 range:[0,1,0.001] align:#left
 	button 'BatchProcessing' "一键批处理" pos:[46,133] width:168 height:26 align:#left
 	groupBox 'grp02' "材质处理" pos:[12,178] width:226 height:153 align:#left
 	button 'btn33' "Button" pos:[114,111] width:0 height:0 align:#left
@@ -18,6 +18,21 @@
 	button 'ClearInformation' "清除信息" pos:[308,29] width:61 height:26 align:#left
 	button 'ConvertToPoly' "Convert To Editable Poly" pos:[47,33] width:168 height:26 align:#left
 	checkbox 'ConvertToPolychk' "Checkbox" pos:[28,39] width:11 height:14 align:#left
+	button 'U3dToMaxCamera' "U3d转MaxCamera" pos:[250,300] width:120 height:26 align:#left
+	
+	
+	
+----------------------U3d转MaxCamera---------------------------------------------------------
+fn CreatU3DCamera =
+(
+	U3DCamera = ($Main_Camera*)[1]
+	U3DCameraFOV = (filterString (filterString U3DCamera.name "(")[2]  ")")[1] as float
+	MAXCamera = Freecamera  fovType:2
+	MAXCamera.transform = U3DCamera.transform	
+	MAXCamera.curFOV = U3DCameraFOV
+	in coordsys local rotate MAXCamera (EulerAngles 0 180 0)
+
+)
 	
 ----------------------ConvertToPoly---------------------------------------------------------
 	fn ConvToPoly = 
@@ -110,6 +125,11 @@
 				)
 			)
 
+	)
+-----------------------转Camera--------------------------------------------------------		
+	on U3dToMaxCamera pressed do
+	(		
+		CreatU3DCamera()
 	)
 	-----------------------转poly--------------------------------------------------------		
 	on ConvertToPoly pressed do
