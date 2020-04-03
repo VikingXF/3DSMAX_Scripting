@@ -1,0 +1,849 @@
+//MAYA前台渲染动画工具
+//该工具原始代码，来源与外国网站，老船工作室对其进行修改、汉化，方便使用
+//本工具仅供学习研究和个人创作使用，未经本站授权请勿商用！
+//转载请注明出处<Animate8.com>！谢谢支持O(∩_∩)O~
+//赋予角色生命，演绎梦想故事。
+//更多精彩内容请关注<老船@动画吧>！
+//网址：www.animate8.com
+//QQ：149090900
+//QQ群：130930540
+//新浪微博：老船动画吧
+////////////////////////////////////
+
+global string $fr_window = "FrontBatchRender";
+global string $fr_licensed = " V3.5";
+
+global proc xl_BrowseCmd (string $xl_FileOrPath, string $xl_TextField, string $xl_WhichButton, int $xl_BrowseType)
+{
+	string $xl_CurrentProject = `workspace -q -rd`;
+	workspace -dir $xl_CurrentProject;
+	string $xl_Temp = "c:";
+	fileBrowser $xl_Temp lx_P "" 0;
+}
+
+///////////////////////////////////////////////////////////////
+proc string fr_Padding (float $n,int $i){
+	string $strn = abs($n);
+	string $buffer[];
+	$numTokens = `tokenize $strn "." $buffer`;
+	if ($n >= 0){
+		while (size($buffer[0]) < $i)
+			$buffer[0] = "0" + $buffer[0];	
+	}
+	else {
+		while (size($buffer[0]) < $i - 1)
+			$buffer[0] = "0" + $buffer[0];	
+		$buffer[0] = "-" + $buffer[0];		
+	}
+	float $isf = `floatField -q -value fr_StartFrame`;
+	float $ief = `floatField -q -value fr_EndFrame`;
+	float $ibf = `floatField -q -value fr_ByFrame`;
+	float $sf = abs($isf);
+	float $ef = abs($ief);
+	float $bf = abs($ibf);
+	int $intn = $sf;
+	$sf = $sf - $intn;	
+	string $ssf = $sf;
+	$sf = size($ssf);	
+
+	int $intn = $ef;
+	$ef = $ef - $intn;	
+	string $sef = $ef;
+	$ef = size($sef);	
+
+	int $intn = $bf;
+	$bf = $bf - $intn;	
+	string $sbf = $bf;
+	$bf = size($sbf);	
+
+	$unit = max($sf,$ef);
+	$unit = max($unit,$bf);
+	$unit -= 2;
+	if ($unit > 0){
+		while(size($buffer[1]) < $unit)
+			$buffer[1] = $buffer[1] + "0";
+		$buffer[0] = $buffer[0] + "." + $buffer[1];
+	}
+	$fr_outPadding = $buffer[0];
+	return  $fr_outPadding;
+}
+
+///////////////////////////////////////////////
+global proc lxDoRender()
+{
+ float $if=`floatField -q -value fr_StartFrame`;
+ float $e = `floatField -q -value fr_EndFrame`;
+ float $s=  `floatField -q -value fr_ByFrame`;
+    int $fp=`intField -q -value  fr_FramePadding`;
+     string $ip=`textFieldButtonGrp -q -text fr_Path`;
+      string $n=`textFieldGrp -q -tx fr_FileName`;
+       int $t= `optionMenu -q -select fr_ImageFormatMode`;
+        string $c= `text -q -l tRC`;
+          int $reso= `radioButtonGrp -q -select fr_SR`;
+           int $dy=`checkBox -q -v fr_Dynamics`;
+            float $dsf=`floatField -q -v fr_DStartFrame`;
+
+progressWindow
+	-title "Ready to render..."
+	-status "Ready to render..."
+	-isInterruptable 1;
+
+if ($dy == 1 && $dsf <= $if) $f = $dsf;
+else $f = $if;
+float $currentFtmp[];
+float $currentF[];
+float $doRender[];
+int $renderKey[];
+int $drn = 0;
+int $cfn = 0;
+for ($i = $if;$i <= $e;$i += $s) {
+	$doRender[$drn] = $i;
+	$drn++;
+	}
+$e = $doRender[size($doRender) - 1];
+if ($dy == 1)
+	for ($ci = $f;$ci <= $e;) {
+		$currentFtmp[$cfn] = $ci;
+		if ($s > 1) $ci += 1;
+		else $ci += $s;
+		$cfn++;
+		}
+else
+	for ($ii = 0;$ii < size($doRender);$ii++)
+		$currentFtmp[$ii] = $doRender[$ii];
+if ($currentFtmp[size($currentFtmp) - 1] != $doRender[size($doRender) - 1]) $currentFtmp[size($currentFtmp)] = $doRender[size($doRender) - 1];
+
+
+$cfn = 0;
+$drn = 0;
+
+for ($iii = 0;$iii < size($currentFtmp);){
+
+float $a = $currentFtmp[$iii];
+float $b = $doRender[$drn];
+string $c;
+if ($a < $b) $c = "1";
+if ($a == $b) $c = "2";
+if ($a > $b) $c = "3";
+
+switch ($c){
+	case "1":
+		$currentF[$cfn] = $currentFtmp[$iii];
+		$renderKey[$cfn] = 0;
+
+		$iii++;
+		$cfn++;
+		break;
+	case "2":
+		$currentF[$cfn] = $currentFtmp[$iii];
+		$renderKey[$cfn] = 1;
+
+		$iii++;
+		if ($drn != size($doRender) -1) $drn++;
+		$cfn++;
+		break;
+	case "3":
+		$currentF[$cfn] = $doRender[$drn];
+		$renderKey[$cfn] = 1;
+
+		if ($drn != size($doRender) -1) $drn++;
+		$cfn++;
+	}
+
+}
+print ("\n" + "List For Rendering" + "\n" + "---------------------------------------" + "\n");
+for ($xxx = 0;$xxx < size($currentF);$xxx++) {
+print (" RenderFrame " + $doRender[$xxx] + "\t\t");
+print (" currentFrame " + $currentF[$xxx] + "\t\t");
+print (" renderKey " + $renderKey[$xxx] + "\n");
+}
+print ("---------------------------------------" + "\n");
+
+$cfn = 0;
+$drn = 0;
+
+if ($reso == 1) setTestResolutionVar(1);
+if ($reso == 2) setTestResolutionVar(5);
+if ($reso == 3) setTestResolutionVar(4);
+
+string $allRLs[];
+string $RLs[];
+$allRLs = `ls -type renderLayer`;
+int $RLsn = 0;
+for ($allRL in $allRLs){
+	if (`getAttr ($allRL + ".renderable")` == 1){
+		$RLs[$RLsn] = $allRL;
+		$RLsn++;
+	}
+}
+
+int $proS = 0; 
+int $proS1 = 0;
+
+progressWindow -edit
+	-maxValue `size($currentF)`
+	-minValue 1
+	-progress 1
+	-title "Starting render..."
+	-status "Starting render...";
+
+///////////////////////////////////////////////
+RenderViewWindow;
+for ($i in $currentF)	
+	{
+	string $fi = fr_Padding ($i,$fp);
+
+	$proS++;
+       progressWindow -edit 
+		-title "Current Frame..."
+		-progress $proS
+		-status ($fi + "   ( " + $proS1 + " / " + `size($doRender)` + " )");
+	currentTime $i;
+	if ($renderKey[$cfn] == 1)
+		{
+		$proS1++;
+		for ($RL in $RLs)	
+			{
+			layerEditorLayerButtonSelect 0 $RL;	
+			if ($RL == "defaultRenderLayer") $p = $ip;
+			else $p = $ip + $RL + "\\";
+
+           progressWindow -edit 
+		 -title "Rendering..."
+               -progress $proS
+	      	-status ($fi + "   ( " + $proS1 + " / " + `size($doRender)` + " )   " + $RL);
+
+			renderWindowRenderCamera render renderView $c;	
+
+           if ( `progressWindow -query -isCancelled` ) break;
+ 
+
+           progressWindow -edit 
+			-title "Saveing..."
+			-progress $proS
+	      	-status ($fi + "   ( " + $proS1 + " / " + `size($doRender)` + " )   " + $RL);
+
+			string $tmp = system("shell mkdir " + $p );
+			switch ($t)
+				{
+				case 1:
+					system ("del " + $p + $n + "." + $fi + ".iff");
+					setAttr "defaultRenderGlobals.imageFormat" -lock 0 ;
+					getAttr defaultRenderGlobals.imfkey;
+					setAttr defaultRenderGlobals.outf 7;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					renderWindowSaveImageCallback "renderView" ($p + $n + "." + $fi + ".iff") "Maya IFF";
+					print ("Frame saved: " + $p + $n + "." + $fi + ".iff" + "\n");
+					break;
+				case 2:
+					setAttr "defaultRenderGlobals.imageFormat" -lock 0 ;
+					getAttr defaultRenderGlobals.imfkey;
+					setAttr defaultRenderGlobals.outf 7;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 3;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 3;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					renderWindowSaveImageCallback "renderView" ($p + $n + "." + $fi + ".tif") "Tiff";
+					print ("Frame saved: " + $p + $n + "." + $fi + ".tif" + "\n");
+					break;
+				case 3:
+					setAttr "defaultRenderGlobals.imageFormat" -lock 0 ;
+					getAttr defaultRenderGlobals.imfkey;
+					setAttr defaultRenderGlobals.outf 7;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 19;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 19;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					renderWindowSaveImageCallback "renderView" ($p + $n + "." + $fi + ".tga") "Targa";
+					print ("Frame saved: " + $p + $n + "." + $fi + ".tga" + "\n");
+					break;
+				case 4:
+					setAttr "defaultRenderGlobals.imageFormat" -lock 0 ;
+					getAttr defaultRenderGlobals.imfkey;
+					setAttr defaultRenderGlobals.outf 7;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 8;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					setAttr defaultRenderGlobals.outf 8;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+					renderWindowSaveImageCallback "renderView" ($p + $n + "." + $fi + ".jpg") "JPEG";
+					print ("Frame saved: " + $p + $n + "." + $fi + ".jpg" + "\n");
+				case 5:
+					setAttr "defaultRenderGlobals.imageFormat" -lock 0 ;
+					getAttr defaultRenderGlobals.imfkey;
+					setAttr defaultRenderGlobals.outf 7;
+					setAttr defaultRenderGlobals.imfkey -type "string" "";
+
+					renderWindowSaveImageCallback "renderView" ($p + $n + "." + $fi + ".png") "PNG";
+					print ("Frame saved: " + $p + $n + "." + $fi + ".png" + "\n");
+				}	
+			}	
+		}	
+	$cfn++;
+	if ( `progressWindow -query -isCancelled` ) {print("Rendering cancelled...\n"); break;}
+	}	
+progressWindow -edit
+	-title "Rendering finish..." 
+	-progress $proS
+	-status ("Rendering finish: " + $proS1 + " / " + `size($doRender)`);
+progressWindow -endProgress;
+print("Rendering finish...\n");
+clear $currentF;
+clear $renderKey;
+clear $RLs;
+}
+
+//////////////////////////////////////////////////////////
+global proc fr_getPath ( string $path, string $mode )
+{
+	textFieldButtonGrp 	-e -text $path fr_Path;
+	frInfo tPath;
+}
+
+//////////////////////////////////////////////////////
+global proc frInfo (string $key)
+{
+
+	switch ($key)
+	{
+	case "tPath":
+		string $tp = `textFieldButtonGrp -q -text fr_Path`;
+		$tp = `strip $tp`;
+		int $tpc = size($tp);
+		string $tpe = `substring $tp $tpc $tpc`;
+		if ($tpe != "\\" && $tpe != "/") $tp = $tp + "/";
+		textFieldButtonGrp -edit -text $tp fr_Path;
+		text -edit -l `textFieldButtonGrp -q -text fr_Path`  tPath;
+		break;
+
+	case "tFileName":
+		if (`textFieldGrp -q -tx fr_FileName` == "")
+		{
+			string $b = `file -q -sn`;
+			string $c = (`dirname $b` + "/");
+			string $d = `substitute $c $b ""`;
+			string $filename[] = stringToStringArray($d, ".");
+			if($filename[0] == "") $filename[0] = "untitled";
+			string $fn = $filename[0];
+			textFieldGrp -edit -tx $fn fr_FileName;
+		}
+		textFieldGrp -e -tx (strip (`textFieldGrp -q -tx fr_FileName`)) fr_FileName;
+		string $fn = `textFieldGrp -q -tx fr_FileName`;
+		string $sf = fr_Padding (`floatField -q -value fr_StartFrame` ,`intField -q -value fr_FramePadding`);
+		string $if = `optionMenu -q -select fr_ImageFormatMode`;
+		switch ($if)
+		{
+		case "1":
+			$if = "iff";
+			break;
+		case "2":
+			$if = "tif";
+			break;
+		case "3":
+			$if = "tga";
+			break;
+		case "4":
+			$if = "jpg";
+		case "5":
+			$if = "png";
+		}
+		string $tfn = $fn + "." + $sf + "." + $if;
+		text -edit -l $tfn tFileName;
+		break;
+
+	case "tTo":
+		string $ef = fr_Padding (`floatField -q -value fr_EndFrame` ,`intField -q -value fr_FramePadding`);
+		string $fn = `textFieldGrp -q -tx fr_FileName`;
+		string $if = `optionMenu -q -select fr_ImageFormatMode`;
+		switch ($if)
+		{
+		case "1":
+			$if = "iff";
+			break;
+		case "2":
+			$if = "tif";
+			break;
+		case "3":
+			$if = "tga";
+			break;
+		case "4":
+			$if = "jpg";
+		case "5":
+			$if = "png";	
+		}
+		string $tto = $fn + "." + $ef + "." + $if;
+		text -edit -l $tto tTo;	
+		break;
+
+	case "tRC":
+
+		string $frcams[] = `ls -type camera`;
+		string $frcamnodes[] = `listRelatives -parent $frcams`;
+		string $qtRC = `optionMenu -q -select fr_RC`;
+		int $nqtRC = $qtRC;
+		$nqtRC = $nqtRC - 1;
+		text -edit -l $frcamnodes[$nqtRC] tRC;
+		clear $frcams;
+		break;
+
+	case "tSize":
+			int $sw = `text -q -l fr_SW`;
+	int $sh = `text -q -l fr_SH`;
+	
+			int $r = `radioButtonGrp -q -select fr_SR`;
+			float $d;
+			if ($r == 1) $d = 1;		
+			if ($r == 2) $d = 0.75;
+			if ($r == 3) $d = 0.5;	
+			int $w = $sw * $d;
+			int $h = $sh * $d;
+			text -edit -l ($w + " X " + $h) tSZ;
+	}
+
+}
+/////////////////////////////////////////////////
+proc fr_UI()
+{
+	global string $fr_window;
+	global string $fr_licensed;
+
+float $sf = `playbackOptions -q -min`;	
+
+float $ef = `playbackOptions -q -max`;	
+
+float $bf = 1.0;	
+
+	int $isf = $sf;
+	int $ief = $ef;
+	string $ssf = $isf;
+	string $sef = $ief;
+	int $sfp1 = size($ssf);
+	int $sfp2 = size($sef);
+	int $sfp = max($sfp1,$sfp2);
+float $fp = $sfp;	
+if($fp < 3) $fp = 3;
+
+	string $fr_CurrentProject = `workspace -q -rd`;		
+	string $fr_CurrentImagesDir = $fr_CurrentProject + "images/";		
+	string $fr_PutoutImages = $fr_CurrentImagesDir;		
+	string $p = $fr_PutoutImages;	
+
+	string $b = `file -q -sn`;
+	string $c = (`dirname $b` + "/");
+	string $d = `substitute $c $b ""`;
+	string $filename[] = stringToStringArray($d, ".");
+	if($filename[0] == "") $filename[0] = "untitled";
+string $fn = $filename[0];	
+
+	window
+		-t "老船角色绑定-☆☆☆☆☆-MAYA前台渲染动画工具!" 
+		-sizeable true
+		-titleBar true
+		-minimizeButton true
+		-maximizeButton false
+		-menuBarVisible false
+		-widthHeight 450 500
+		-tlc 240 60
+		$fr_window;
+	
+ string $fr_form = `formLayout -numberOfDivisions 100`;
+
+/////////////////////////
+		columnLayout -adjustableColumn 1 Info;
+		 text -l "老船绑定工具-老船动画吧：http://www.animate8.com/";
+    button -l "访 问 老 船 动 画 吧！" -bgc 0.3 0.2 0.1 -h 30  -c "showHelp -a \"http://www.animate8.com\"";
+			separator -h 10;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "路径:"
+					-ann "Current path to save";
+				text
+					-l ""
+					tPath;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "文件名称:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				text
+					-l ""
+					tFileName;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "输出到:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				text
+					-l ""
+					tTo;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "渲染相机:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				text
+					-l ""
+					tRC;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "分辨率:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				text
+					-l ""
+					tSZ;
+				setParent ..;
+
+			setParent ..;
+	
+	string $fr_scroll = `scrollLayout -hst 16 -vst 16 -childResizable true -minChildWidth 90`;
+
+		columnLayout -adjustableColumn 1;
+//////////////////////////////////
+			rowLayout
+				-numberOfColumns 1
+				-cat 1 "left" 1
+				-columnWidth 1 120;
+
+				string $wsDir = dirname( `workspace -q -fn` );		
+				if (`file -q -ex $wsDir`)
+				{
+					workspace -dir $wsDir;
+				}
+				
+				string $pString = `workspace -q -rd`;
+				string $bc = "fileBrowserDialog -m 4 -fc \"fr_getPath\" -ft \"directory\" -an \"(Current Project: " + $pString + ")\" -wt \"Set Path\"";
+				textFieldButtonGrp 	-label "路径:" 
+							-text $p
+							-ed 1
+							-buttonLabel "浏览..." 
+							-adj 2 -cw 1 120 -cw 3 60 
+							-cl3 right left center 
+							-cc "frInfo tPath"
+							-bc "gtRenderGetDir;"
+							-ann "You are able to put the new folder here..."
+							fr_Path;
+				setParent ..;
+			rowLayout
+				-numberOfColumns 1
+				-cat 1 "left" 1
+				-columnWidth 1 120;
+				textFieldGrp
+					 -l "文件名称前缀:" 
+					-tx $fn 
+					-en 1 -cw2 120 240 
+					-cl2 right left
+					-cc "frInfo tFileName;frInfo tTo" 
+					fr_FileName;
+				setParent ..;
+			rowLayout
+				-numberOfColumns 3
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "图像格式:"
+					-ann "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+				optionMenu
+					-label ""
+					-cc "frInfo tFileName;frInfo tTo"
+					fr_ImageFormatMode;
+					 	menuItem -label "Maya IFF (iff)";
+						menuItem -label "Tiff (tif)";
+					 	menuItem -label "Targa (tga)";
+						menuItem -label "JPEG (jpg)";
+						menuItem -label "PNG (png)";
+
+				text
+					-l "Only IFF support renderlayer..."
+					-vis 0
+					-ann "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+				setParent ..;
+			separator -h 10;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "开始帧:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				floatField
+					-w 80
+					-value $sf
+					-precision 3
+					-cc "frInfo tFileName;frInfo tTo"
+					fr_StartFrame;
+				setParent ..;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "结束帧:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				floatField
+					-w 80
+					-value $ef
+					-precision 3
+					-cc "frInfo tFileName;frInfo tTo"
+					fr_EndFrame;
+				setParent ..;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "间隔帧数:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				floatField
+					-w 80
+					-value $bf
+					-minValue 0.001
+					-precision 3
+					-cc "frInfo tFileName;frInfo tTo"
+					fr_ByFrame;
+				setParent ..;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "序号位数:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				intField
+					-w 80
+					-value $fp
+					-maxValue 9
+					-minValue 1
+					-step 1
+					-cc "frInfo tFileName;frInfo tTo"
+					fr_FramePadding;
+				setParent ..;
+			separator -h 10;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "渲染相机:"
+					-ann "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+				optionMenu
+					-label ""
+					-cc "frInfo tRC"
+					fr_RC;
+
+			string $frcams[] = `ls -type camera`;
+			string $frcamnodes[] = `listRelatives -parent $frcams`;
+					for ($frcam in $frcamnodes)
+					 	menuItem -label $frcam;
+			clear $frcams;
+				setParent ..;
+			separator -h 10;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+
+				text
+					-l "宽度:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+
+int $frWidth = `getAttr "defaultResolution.width"`;
+
+				text
+					-l $frWidth
+					-ann "XXXXXXXXXXXXXXXXXXXX"
+					fr_SW;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l "H高度:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+int $frHeight = `getAttr "defaultResolution.height"`;
+
+				text
+					-l $frHeight
+					-ann "XXXXXXXXXXXXXXXXXXXX"
+					fr_SH;
+
+				setParent ..;
+			rowLayout
+					-numberOfColumns 2
+					-cat 1 "right" 5
+					-columnWidth 1 120
+					-columnWidth 2 120;
+					text
+						-label "分辨率:";
+
+					radioButtonGrp
+						-numberOfRadioButtons 3
+						-cw 1 100
+						-cw 2 105
+						-labelArray3 "100%" "75%" "50%"
+						-select 1
+						-cc "frInfo tSize"
+						fr_SR;
+					setParent ..;
+			separator -h 10;
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+				text
+					-l ""
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+
+				checkBox -l "动力学" -v 0 fr_Dynamics;
+				setParent ..;
+
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+
+				text
+					-l "开始帧:"
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+				floatField
+					-w 80
+					-value 1
+					-cc ""
+					fr_DStartFrame;
+				setParent ..;
+
+string $RLs[];
+$RLs = `ls -type renderLayer`;
+if (size($RLs) > 1)
+		{
+			separator -h 10;
+		int $f = 1;
+		for ($RL in $RLs)
+			{
+			rowLayout
+				-numberOfColumns 2
+				-cat 1 "right" 5
+				-columnWidth 1 120;
+			if ($f == 1) $tl = "Render Layers:";
+				else $tl = "";
+				text
+					-l $tl
+					-ann "XXXXXXXXXXXXXXXXXXXX";
+		int $Rv = `getAttr ($RL + ".renderable")`;
+		string $CBN = $RL;
+		if ($RL == "defaultRenderLayer") $CBN = "masterLayer";
+				checkBox -l $CBN -v $Rv -en 1 -ofc "" -onc "" $CBN;
+			$ofc = "setAttr " + $RL + ".renderable " + 0;
+			$onc = "setAttr " + $RL + ".renderable " + 1;
+				checkBox -e -ofc $ofc -onc $onc $CBN;
+				setParent ..;
+			$f++;
+			}
+		}
+
+			setParent ..;
+		setParent ..;
+			button
+				-label "恢复默认"
+				-ann "Refresh all setup"
+				-command "lxFrontBatchRender"
+				fr_b1;
+
+			button
+				-label "渲染"
+				-ann "Start render"
+				-command "lxDoRender"
+				fr_b2;
+
+			button
+				-label "关闭"
+				-ann "Close window"
+				-command "deleteUI $fr_window"
+				fr_b3;
+
+	formLayout -edit
+
+		-attachForm Info "top" 2
+		-attachForm Info "left" 2
+		-attachForm Info "right" 2
+
+		-attachControl $fr_scroll "top" 2 Info
+		-attachForm $fr_scroll "left" 2
+		-attachControl $fr_scroll "bottom" 2 fr_b1
+		-attachForm $fr_scroll "right" 2
+
+		-attachNone fr_b1 "top"
+		-attachPosition fr_b1 "left" 2 0
+		-attachForm fr_b1 "bottom" 2
+		-attachPosition fr_b1 "right" 2 30
+
+		-attachNone fr_b2 "top"
+		-attachPosition fr_b2 "left" 2 30
+		-attachForm fr_b2 "bottom" 2
+		-attachPosition fr_b2 "right" 2 70
+
+		-attachNone fr_b3 "top"
+		-attachPosition fr_b3 "left" 2 70
+		-attachForm fr_b3 "bottom" 2
+		-attachPosition fr_b3 "right" 2 100
+		$fr_form;
+
+		frInfo tPath;
+		frInfo tFileName;
+		frInfo tTo;
+		frInfo tRC;
+		frInfo tSize;
+		
+		showWindow $fr_window;
+}
+////////////////////////////////////
+global proc gtRenderGetDirName(string $dir){
+				textFieldButtonGrp -e -tx ($dir+"/") fr_Path;
+				text -e -l  ($dir+"/")	tPath;
+}
+//////////////////////////
+
+global proc gtRenderGetDir(){
+string $filename[] = `fileDialog2 -fileMode 3 -caption "Image"`;
+if (1 == `size($filename)`)
+    {
+   gtRenderGetDirName($filename[0]);
+    }
+}
+///////////////////////////////////////
+global proc gtlxFrontBatchRender()
+{
+global string $fr_window;
+RenderViewWindow;
+if (`window -exists $fr_window` == true)
+	deleteUI $fr_window;
+	fr_UI();
+}
+
+/////////////
+gtlxFrontBatchRender;

@@ -1,0 +1,614 @@
+global proc clear_vray(){
+    setAttr  "defaultRenderGlobals.postMel" -type "string" "";
+    
+    string $get_time_node[]=`ls -type "time"`;
+    int $if_a=`getAttr ($get_time_node[0]+".if_ani")`;
+    setAttr -type "string" "vraySettings.fileNamePrefix" `getAttr ($get_time_node[0]+".old_name")`;
+     setAttr "defaultRenderGlobals.animation" $if_a;
+    
+}
+ 
+global proc open_pro()
+{
+string $myScriptDir_UFR_pro = (`internalVar -userScriptDir`+"UFR_data/UFR_PRO.mel");
+eval ("source \""+$myScriptDir_UFR_pro+"\"");
+deleteUI start_UFR;
+}
+global proc fix_temp(){
+workspace -fr "images" "images";
+}
+global proc string[] getPASSarr(string $RLN){
+   string $getPass[];
+   if(`objExists ($RLN+".renderPass")`){
+    $getPass=`listConnections ($RLN+".renderPass")`;}
+return $getPass;
+}
+
+global proc string[] getAOVarr()
+{
+
+string $the_AOVs_arr[];
+clear $the_AOVs_arr;
+int $num_AOVs=0;
+if(`objExists defaultArnoldDriver`)
+{
+string $listC_arnold[]=`listConnections  defaultArnoldDriver`;
+
+for ($crs4=0;$crs4<`size($listC_arnold)`;$crs4++){
+if(`match "aiAOV_*" $listC_arnold[$crs4]`!="")
+{if(`getAttr ($listC_arnold[$crs4]+".enabled")`){$num_AOVs++;
+$the_AOVs_arr[$num_AOVs-1] = `substring $listC_arnold[$crs4] 7 (size($listC_arnold[$crs4]))`;}}}}
+return $the_AOVs_arr;
+} 
+
+global proc string getAOVarr2()
+{
+
+string $the_AOVs_arr[];
+clear $the_AOVs_arr;
+int $num_AOVs=0;
+int $ifbeauty=0;
+if(`objExists defaultArnoldDriver`)
+{
+string $listC_arnold[]=`listConnections  defaultArnoldDriver`;
+
+for ($crs4=0;$crs4<`size($listC_arnold)`;$crs4++){
+if(`match "aiAOV_*" $listC_arnold[$crs4]`!="")
+{if(`getAttr ($listC_arnold[$crs4]+".enabled")`){$num_AOVs++;
+}if($num_AOVs==0){$ifbeauty=1;}else{$ifbeauty=0;}}}}
+return $ifbeauty;
+}
+
+
+global proc start_render_sin(){
+python ("import maya.cmds as mc");
+python ("import maya.mel as mel");
+python ("import os.path");
+python ("import os");
+python ("import shutil");
+
+if(`progressBar -ex  prog_new_render`){
+progressBar -e -pr 0 prog_new_render;}
+if (`text -ex  ifstop`!=1){
+text -h 1 -l "" -p main_new_render_layout ifstop;}
+string $get_time_node[]=`ls -type "time"`;
+    if (`attributeExists "if_ani" $get_time_node[0]`!=1){
+    addAttr -ln "if_ani"  -at long  $get_time_node[0];
+    setAttr -e-keyable true ($get_time_node[0]+".if_ani");
+
+}
+if (`attributeExists "old_name" $get_time_node[0]`!=1){
+addAttr -ln "old_name"  -dt "string"  $get_time_node[0];
+setAttr -e-keyable true ($get_time_node[0]+".old_name");
+
+}
+setAttr -type "string" ($get_time_node[0]+".old_name") `getAttr "defaultRenderGlobals.imageFilePrefix"`;
+
+int $getSF=`intField -q -v theSFrame`;
+int $getEF=`intField -q -v theEFrame`;
+currentTime $getSF;
+string $getCFr=`currentTime -q`;
+string $get_rl=`text -q -l text_RL`;
+string $get_UR=`getURofRL($get_rl)`;
+
+string $get_ca=`optionMenu -q -v the_camera`;
+string $thePAD;
+int $getCFr_INT=$getCFr;
+if($getCFr_INT>=0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(5)");}
+if($getCFr_INT<0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(6)");}
+string $get_new_path=`scrollField -q -tx text_path`;
+string $makedir=`substring $get_new_path 1 (size($get_new_path)-1)`;
+
+sysFile -md $makedir;
+int $theIFM;
+
+
+
+if($get_UR=="mayaSoftware"){
+setAttr  "defaultRenderGlobals.postMel" -type "string" "script_sw()";
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);
+}
+if($get_UR=="mentalRay"){
+setAttr  "defaultRenderGlobals.postMel" -type "string" "script_mr()";
+string $get_old_fn=`getAttr ($get_time_node[0]+".old_name")`;
+$theIFM=`getAttr defaultRenderGlobals.imageFormat`;
+if($theIFM==51)
+{
+if(`match "<RenderPass>" $get_old_fn`!="") 
+{setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);}
+else{setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);}
+}
+else
+{
+ setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);   
+}
+
+}
+if($get_UR=="arnold"){
+int $if_mv=`getAttr "defaultArnoldDriver.mergeAOVs"`;
+progressBar -e -imp 1 prog_new_render;
+setAttr  "defaultRenderGlobals.postRenderMel" -type "string" "script_ar()";
+if ($if_mv==1){
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);}
+if ($if_mv==0){
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);}
+}
+
+
+if($get_UR=="vray")
+{
+
+    if (`progressBar -ex prog_new_render`){
+    global string  $gMainProgressBar;
+    progressBar -e -imp 1 $gMainProgressBar;}
+    
+    
+    string $get_time_node[]=`ls -type "time"`;
+    
+
+    
+    int $ifani=`getAttr "defaultRenderGlobals.animation"`;
+ 
+    setAttr -type "string" ($get_time_node[0]+".old_name") `getAttr "vraySettings.fileNamePrefix"`;
+    setAttr  ($get_time_node[0]+".if_ani") $ifani;
+    setAttr "defaultRenderGlobals.startFrame"  $getSF;
+    setAttr "defaultRenderGlobals.endFrame"  $getEF;
+    setAttr "defaultRenderGlobals.animation" 1;
+    setAttr "vraySettings.animBatchOnly" 0;
+    setAttr "vraySettings.fileNamePadding" 5;
+    setAttr "vraySettings.runToAnimationStart" 0;
+    setAttr "vraySettings.runToCurrentTime" 0;
+    setAttr "defaultRenderGlobals.modifyExtension" 0;
+    
+    
+           setAttr "vraySettings.relements_usereferenced" 0;
+       setAttr "vraySettings.relements_separateFolders" 0;
+       setAttr -type "string" "vraySettings.fileNameRenderElementSeparator" "_";
+    setAttr -type "string" "vraySettings.fileNamePrefix" ($get_rl);
+    setAttr  "defaultRenderGlobals.postMel" -type "string" "clear_vray()";
+}
+
+setMayaSoftwareFrameExt(2,0);
+tearOffPanel "Render View" "renderWindowPanel" true;
+renderWindowRenderCamera ("render","renderView",$get_ca);
+}
+
+
+global proc script_sw(){
+int $getSF=`intField -q -v theSFrame`;
+int $getEF=`intField -q -v theEFrame`;
+
+int $getCF=`currentTime -q`;
+float $pr_new=linstep($getSF,$getEF,$getCF)*100;
+progressBar -e -vis 1 -pr `trunc($pr_new)` prog_new_render;
+
+
+
+int $temp_CD=1-(`getAttr "defaultRenderLayer.renderable"`);
+setAttr "defaultRenderLayer.renderable" ($temp_CD) ;
+setAttr "defaultRenderLayer.renderable" (1-$temp_CD) ;
+string $allRenderLayer[]=`ls -type "renderLayer"`;
+int $num_rl=size($allRenderLayer);
+string $get_rl=`text -q -l text_RL`;
+string $get_old_path;
+if($num_rl>1){
+$get_old_path=(`workspace -en images`+"/tmp/"+$get_rl+"/");
+if(`text -q -l text_RL`=="defaultRenderLayer")
+{$get_old_path=(`workspace -en images`+"/tmp/masterLayer/");}
+}
+else{
+  $get_old_path=(`workspace -en images`+"/tmp/");  
+}
+
+
+string $get_new_path=`scrollField -q -tx text_path`;
+
+python ("import maya.cmds as mc");
+python ("import maya.mel as mel");
+python ("import os.path");
+python ("import os");
+python ("import shutil");
+python ("base_dir=r\""+$get_old_path+"\"");
+python ("temp_list=os.listdir(base_dir)");
+python ("temp_list.sort(key=lambda fn: os.path.getmtime(base_dir+fn) if not os.path.isdir(base_dir+fn) else 0)");
+if(`text -ex ifstop`){
+string $the_file=python("temp_list[-1]");
+string $needtoMove=$get_old_path+$the_file;
+python ("mc.sysFile(\""+$needtoMove+"\",move=\""+$get_new_path+$the_file+"\")");}
+setAttr  "defaultRenderGlobals.postMel" -type "string" ""; 
+int $getEF=`intField -q -v theEFrame`;
+int $getCF=`currentTime -q`;
+if($getCF<$getEF){
+currentTime (`currentTime -q`+1);
+string $getCFr=`currentTime -q`;
+string $get_ca=`optionMenu -q -v the_camera`;
+string $thePAD;
+int $getCFr_INT=$getCFr;
+if($getCFr_INT>=0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(5)");}
+if($getCFr_INT<0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(6)");}
+
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);
+
+if_stop_render();
+if(`text -ex ifstop`){
+setAttr  "defaultRenderGlobals.postMel" -type "string" "script_sw()";}
+renderWindowRenderCamera ("render","renderView",$get_ca);}
+if(`getAttr  "defaultRenderGlobals.postMel"`=="")
+{
+    string $get_time_node[]=`ls -type "time"`;
+    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" `getAttr ($get_time_node[0]+".old_name")`;
+}
+}
+
+
+
+
+global proc script_mr(){
+int $getSF=`intField -q -v theSFrame`;
+int $getEF=`intField -q -v theEFrame`;
+
+int $getCF=`currentTime -q`;
+float $pr_new=linstep($getSF,$getEF,$getCF)*100;
+progressBar -e -vis 1 -pr `trunc($pr_new)` prog_new_render;
+
+int $temp_CD=1-(`getAttr "defaultRenderLayer.renderable"`);
+setAttr "defaultRenderLayer.renderable" ($temp_CD) ;
+setAttr "defaultRenderLayer.renderable" (1-$temp_CD) ;
+string $allRenderLayer[]=`ls -type "renderLayer"`;
+int $num_rl=size($allRenderLayer);
+string $get_rl=`text -q -l text_RL`;
+int $theIFM;
+
+string $get_old_path;
+if($num_rl>1){
+$get_old_path=(`workspace -en images`+"/tmp/"+$get_rl+"/");}
+else{
+  $get_old_path=(`workspace -en images`+"/tmp/");  
+}
+string $get_new_path=`scrollField -q -tx text_path`;
+
+python ("import maya.cmds as mc");
+python ("import maya.mel as mel");
+python ("import os.path");
+python ("import os");
+python ("import shutil");
+python ("base_dir=r\""+$get_old_path+"\"");
+python ("temp_list=os.listdir(base_dir)");
+python ("temp_list.sort(key=lambda fn: os.path.getmtime(base_dir+fn) if not os.path.isdir(base_dir+fn) else 0)");
+
+string $get_time_node[]=`ls -type "time"`;
+string $get_old_fn=`getAttr ($get_time_node[0]+".old_name")`;
+int $num_pass=size(`getPASSarr($get_rl)`);
+
+
+if(`text -ex ifstop`){
+if(`match "<RenderPass>" $get_old_fn`!="") 
+{
+for ($i=0;$i<$num_pass+1;$i++)
+{
+string $the_file=python("temp_list[-"+($i+1)+"]");
+string $needtoMove=$get_old_path+$the_file;
+python ("mc.sysFile(\""+$needtoMove+"\",move=\""+$get_new_path+$the_file+"\")");
+}
+}
+else
+{
+string $the_file=python("temp_list[-1]");
+string $needtoMove=$get_old_path+$the_file;
+python ("mc.sysFile(\""+$needtoMove+"\",move=\""+$get_new_path+$the_file+"\")");
+}
+}
+
+setAttr  "defaultRenderGlobals.postMel" -type "string" ""; 
+
+
+
+if($getCF<$getEF){
+currentTime (`currentTime -q`+1);
+string $getCFr=`currentTime -q`;
+string $get_ca=`optionMenu -q -v the_camera`;
+string $thePAD;
+int $getCFr_INT=$getCFr;
+if($getCFr_INT>=0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(5)");}
+if($getCFr_INT<0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(6)");}
+$theIFM=`getAttr defaultRenderGlobals.imageFormat`;
+if ($theIFM==51){
+if(`match "<RenderPass>" $get_old_fn`!="") 
+{
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);}
+else{
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);}}
+else
+{
+    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);
+}
+if_stop_render();
+if(`text -ex ifstop`){
+setAttr  "defaultRenderGlobals.postMel" -type "string" "script_mr()";}
+renderWindowRenderCamera ("render","renderView",$get_ca);}
+if(`getAttr  "defaultRenderGlobals.postMel"`=="")
+{
+    
+    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" `getAttr ($get_time_node[0]+".old_name")`;
+}
+}
+
+
+
+
+
+
+
+global proc script_ar(){
+int $getSF=`intField -q -v theSFrame`;
+int $getEF=`intField -q -v theEFrame`;
+
+int $getCF=`currentTime -q`;
+float $pr_new=linstep($getSF,$getEF,$getCF)*100;
+progressBar -e -imp 1 -vis 1 -pr `trunc($pr_new)` prog_new_render;
+
+
+
+int $temp_CD=1-(`getAttr "defaultRenderLayer.renderable"`);
+setAttr "defaultRenderLayer.renderable" ($temp_CD) ;
+setAttr "defaultRenderLayer.renderable" (1-$temp_CD) ;
+string $allRenderLayer[]=`ls -type "renderLayer"`;
+int $num_rl=size($allRenderLayer);
+string $get_rl=`text -q -l text_RL`;
+string $get_old_path;
+int $if_mv=`getAttr "defaultArnoldDriver.mergeAOVs"`;
+string $get_new_path=`scrollField -q -tx text_path`;
+
+python ("import maya.cmds as mc");
+python ("import maya.mel as mel");
+python ("import os.path");
+python ("import os");
+python ("import shutil");
+string $get_all_aovs[];
+clear $get_all_aovs;
+$get_all_aovs=`getAOVarr`;
+int $num_aov=size($get_all_aovs);
+
+if($num_rl>1){
+$get_old_path=(`workspace -en images`+"/tmp/"+$get_rl+"/");}
+else{
+  $get_old_path=(`workspace -en images`+"/tmp/");  
+}
+python ("base_dir=r\""+$get_old_path+"\"");
+python ("temp_list=os.listdir(base_dir)");
+python ("temp_list.sort(key=lambda fn: os.path.getmtime(base_dir+fn) if not os.path.isdir(base_dir+fn) else 0)");
+
+if ($if_mv==0){
+for ($i=0;$i<$num_aov+1;$i++)
+{
+string $the_file=python("temp_list[-"+($i+1)+"]");
+string $needtoMove=$get_old_path+$the_file;
+python ("mc.sysFile(\""+$needtoMove+"\",move=\""+$get_new_path+$the_file+"\")");
+
+}
+}
+if ($if_mv==1){
+string $the_file=python("temp_list[-1]");
+string $needtoMove=$get_old_path+$the_file;
+python ("mc.sysFile(\""+$needtoMove+"\",move=\""+$get_new_path+$the_file+"\")");
+
+}
+
+setAttr  "defaultRenderGlobals.postRenderMel" -type "string" ""; 
+
+if($getCF<$getEF){
+currentTime (`currentTime -q`+1);
+string $getCFr=`currentTime -q`;
+string $get_ca=`optionMenu -q -v the_camera`;
+string $thePAD;
+int $getCFr_INT=$getCFr;
+if($getCFr_INT>=0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(5)");}
+if($getCFr_INT<0){
+$thePAD=python("\""+$getCFr+"\""+".zfill(6)");}
+
+if ($if_mv==1){
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_"+$get_ca+"."+$thePAD);}
+if ($if_mv==0){
+setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" ($get_rl+"_<RenderPass>_"+$get_ca+"."+$thePAD);}
+if_stop_render();
+if(`text -ex ifstop`){
+setAttr  "defaultRenderGlobals.postRenderMel" -type "string" "script_ar()";}
+
+
+
+renderWindowRenderCamera ("render","renderView",$get_ca);}
+if(`getAttr  "defaultRenderGlobals.postMel"`=="")
+{
+    string $get_time_node[]=`ls -type "time"`;
+    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" `getAttr ($get_time_node[0]+".old_name")`;
+}
+}
+
+
+global proc if_stop_render(){
+    if(`progressBar -q -ic prog_new_render`&&`text -ex  ifstop`)
+    {deleteUI ifstop;print "\n渲染被中止！\n";}
+    
+}
+
+
+global proc open_p(){
+   string $get_rl=`text -q -l text_RL`;
+   string $get_UR=`getURofRL($get_rl)`;
+   string $temp_string;
+    if($get_UR=="vray"){
+    $temp_string=`workspace -en images`;}
+    else{
+    $temp_string=`scrollField -q -tx text_path`;}
+    string $real_string=`toNativePath($temp_string)`;
+    system ("start explorer \""+$real_string+"\"");
+    
+    
+}
+
+
+global proc string getTheSceneName(){
+ string $allname_scene=`file  -q -sn`; 
+ string $allname_scene_base; 
+ if($allname_scene!=""){
+ $allname_scene_base= `basenameEx($allname_scene)`;}
+ else{$allname_scene_base="untitled";}
+ return $allname_scene_base;
+
+} 
+
+
+global proc fix_renderview(){
+$exists=0;
+ for ($item in `getPanel -scriptType "renderWindowPanel"`) {
+  if ( $item == "renderView" ) {
+   //print "renderView exists.n";
+   $exists=1;
+  }
+ }
+ if ( $exists == 0 ) {
+  for ($item in `getPanel -scriptType "renderWindowPanel"`) {
+   //print ( $item + "n");
+   if ( $item == "renderWindowPanel1" ) {
+   deleteUI renderWindowPanel1;
+   $renderPanel = `scriptedPanel -type "renderWindowPanel" -unParent renderView`;
+   scriptedPanel -e -label `interToUI $renderPanel` $renderPanel;
+   }
+  }
+ }
+ }
+ 
+ 
+ 
+global proc string getURofRL(string $name_renderlayer)
+{
+    
+
+    string $theUR;
+    if(stringArrayCount("defaultRenderGlobals.currentRenderer", `editRenderLayerAdjustment -q -layer $name_renderlayer`)==0)
+    {if(`editRenderLayerGlobals -q -currentRenderLayer`==$name_renderlayer){$theUR=`getAttr defaultRenderGlobals.currentRenderer`;}
+    if(`editRenderLayerGlobals -q -currentRenderLayer`!=$name_renderlayer)
+            {string $all_c[]=`listConnections -c 1 "defaultRenderLayer"`; 
+            for ($one_c in $all_c)
+                        {
+                         string $temp_c[]=`listConnections -p 1 $one_c`;
+                          float $temp_if_3;
+                         if(stringArrayCount("defaultRenderGlobals.currentRenderer",$temp_c)==1)
+                             {
+                               $temp_if_3=1;
+                               string $temp_c2=`substring $one_c 1 (size($one_c) - 4)`;
+                               $theUR=`getAttr ($temp_c2+"value")`;
+                             
+                             }
+                           if($temp_if_3==0){$theUR=`getAttr "defaultRenderGlobals.currentRenderer"`;}  
+                             
+                        }
+            }
+          
+     }
+     
+    if(stringArrayCount("defaultRenderGlobals.currentRenderer", `editRenderLayerAdjustment -q -layer $name_renderlayer`)==1)
+    {if(`editRenderLayerGlobals -q -currentRenderLayer`==$name_renderlayer){$theUR=`getAttr defaultRenderGlobals.currentRenderer`;}
+    if(`editRenderLayerGlobals -q -currentRenderLayer`!=$name_renderlayer)
+            {string $all_c[]=`listConnections -c 1 $name_renderlayer`; 
+            for ($one_c in $all_c)
+                        {
+                         string $temp_c[]=`listConnections -p 1 $one_c`;
+                         if(stringArrayCount("defaultRenderGlobals.currentRenderer",$temp_c)==1)
+                             {
+                               string $temp_c2=`substring $one_c 1 (size($one_c) - 4)`;
+                               $theUR=`getAttr ($temp_c2+"value")`;
+                              
+                             }
+                        }
+            }
+    
+     }
+    
+
+     
+    if   (stringArrayCount($theUR,{"arnold","mentalRay","mayaSoftware","vray"})==0)
+    {
+        $theUR="Unsupport Render!!";
+    }
+     
+   
+    return $theUR;
+}
+
+
+global proc change_RL(){
+text -e -l `editRenderLayerGlobals -q -crl` text_RL;
+scrollField -e -tx (`workspace -en images`+"/"+`getTheSceneName`+"/"+`editRenderLayerGlobals -q -crl`+"/") text_path;
+}
+
+
+
+global proc win_start_UFR(){
+if (`window -ex start_UFR`) {deleteUI start_UFR;}
+window -t "UFR v7.00"  -sizeable 0 start_UFR;
+
+rowColumnLayout -w 300 -h 150;
+
+string $myScriptDir_UFR_icon_logo = (`internalVar -userScriptDir`+"UFR_data/icon_logo.png");
+iconTextButton -ann "click to Visit the blog" -c "showHelp -absolute \"http://blog.sina.com.cn/u/1142154637\"" -image $myScriptDir_UFR_icon_logo;
+scrollLayout  -h 180  -horizontalScrollBarThickness 16 -verticalScrollBarThickness  16;
+
+rowColumnLayout  -nc 2 -cw 1 150 main_new_render_layout;
+
+text -h 20 -fn "boldLabelFont" -l "Current renderlayer :";
+text -fn "boldLabelFont" -l (`editRenderLayerGlobals -q -crl`) text_RL;
+scriptJob -p start_UFR -e "renderLayerManagerChange" "change_RL()";
+scriptJob -p start_UFR -e "NameChanged" "change_RL()";
+scriptJob -p start_UFR -e "SceneSaved" "change_RL()";
+setParent ..; 
+rowColumnLayout  -nc 2 -cw 1 150;
+text -h 20 -fn "boldLabelFont" -l "Camera :";
+optionMenu the_camera;
+for ($ca in `listCameras`)
+{
+    menuItem -label $ca;
+}
+optionMenu -e -v `modelEditor -q -cam "modelPanel4"` the_camera;
+setParent ..; 
+rowColumnLayout  -nc 4 -cw 1 150 -cw 2 50 -cw 3 10 -cw 4 50;
+text -fn "boldLabelFont" -l "Frame range :";
+intField  -v (`playbackOptions -q -min`) theSFrame;
+text -fn "boldLabelFont" -l "  - ";
+intField  -v (`playbackOptions -q -max`) theEFrame;
+setParent ..; 
+rowColumnLayout  -nc 1-cw 1 280;
+
+frameLayout -borderStyle "in" -l "Path :";
+
+
+scrollField -w 270 -bgc 0.3 0.3 0.3 -h 70   -ed 0 -wordWrap true -fn "boldLabelFont" -tx (`workspace -en images`+"/"+`getTheSceneName`+"/"+`editRenderLayerGlobals -q -crl`+"/") text_path;
+setParent ..; 
+setParent ..;
+setParent ..;  
+text -h 1 -l "" ifstop;
+progressBar -ii 1 -imp 1 -vis 0 prog_new_render;
+text -h 3 -l "";
+setParent ..; 
+
+rowColumnLayout  -nc 6 -cw 1 2 -cw 2 100 -cw 3 10 -cw 4 100 -cw 5 10 -cw 6 60;
+text -l "";
+button -l "Professional \n Version" -ann "切换到专业版" -c "open_pro()";
+text -l "";
+button -bgc 1.0 0.5 0.17 -h 40  -ann "开始渲染当前渲染层" -label "Start \n Rendering" -c "start_render_sin()";
+text -l "";
+button -l "Open \n Path" -ann "打开目录" -c "open_p()";
+setParent ..; 
+showWindow start_UFR;
+
+}
+fix_temp();
+win_start_UFR();
+fix_renderview();
