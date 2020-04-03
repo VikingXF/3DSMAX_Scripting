@@ -1,0 +1,3 @@
+python "import sys";
+python "sys.path.append('D:/maya_plugins')";
+python "import demiiris";
