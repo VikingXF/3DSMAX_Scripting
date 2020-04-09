@@ -1,0 +1,6 @@
+for($cc=0;$cc<5;$cc++)
+{
+    currentTime $cc;
+    renderWindowRender redoPreviousRender renderView; 
+    
+};
