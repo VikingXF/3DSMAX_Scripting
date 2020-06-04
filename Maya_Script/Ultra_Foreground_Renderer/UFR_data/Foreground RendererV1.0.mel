@@ -1,0 +1,156 @@
+
+//===================================================================
+//注意：修正地址
+global proc fix_path(){
+string $the_output_path=`textField -q -tx  path_loc`;
+
+
+if(`endsWith $the_output_path "\\"`!=1)
+{
+    textField -e -tx ($the_output_path+"\\") path_loc;
+    
+    };
+
+}
+//===================================================================
+//注：浏览目录
+global proc browse_path()
+{
+		string $getPath = `textField -q -text path_loc`;
+		global string $gDefaultFileBrowserDir;
+		$gDefaultFileBrowserDir= fromNativePath($getPath);
+		fileBrowser( "browseFolder_rl(0)", "Project", "", 4 );	
+		
+}
+global proc int browseFolder_rl(int $mode,string $dirpath,string $type) 
+{
+	
+	if ($mode==0){
+		 textField -e -text (toNativePath($dirpath)+"\\") path_loc;
+		return true;	
+	}
+	
+	else if  ($mode==1){
+		 textField -e -text (toNativePath($dirpath)) path_loc;
+		return true;	
+		
+	}
+}
+//===================================================================
+//注：打开输出目录
+global proc openImagesFolder(){
+    string $loc=`textField -q -tx path_loc`;
+    string $the_output_path_L=`fromNativePath($loc)`;
+    string $path=`toNativePath $loc`;
+    sysFile -makeDir $the_output_path_L;
+    system ("start explorer \""+$path+"\"");
+}
+//===================================================================
+//注：分辨率预设
+global proc R_preset(){
+string $get_preset_r=`optionMenuGrp -q -v Res_preset`;
+if($get_preset_r=="HD 1080P"){intField -e -v 1920 the_w;intField -e -v 1080 the_h;}
+if($get_preset_r=="HD 720P"){intField -e -v 1280 the_w;intField -e -v 720 the_h;}
+if($get_preset_r=="640*480"){intField -e -v 640 the_w;intField -e -v 480 the_h;}
+if($get_preset_r=="1k square"){intField -e -v 1024 the_w;intField -e -v 1024 the_h;}
+if($get_preset_r=="2k square"){intField -e -v 2048 the_w;intField -e -v 2048 the_h;}
+if($get_preset_r=="3k square"){intField -e -v 3072 the_w;intField -e -v 3072 the_h;}
+if($get_preset_r=="4k square"){intField -e -v 4096 the_w;intField -e -v 4096 the_h;}
+}
+//===================================================================
+
+
+
+//===================================================================
+//变量
+string $defaultLocation_temp= `workspace -en images`;
+string $defaultLocation= toNativePath($defaultLocation_temp);
+int $theResolution_w=`getAttr "defaultResolution.w"`;
+int $theResolution_h=`getAttr "defaultResolution.h"`;
+string $getTheW;
+string $getTheH;
+//===================================================================
+//主界面UI
+window -title "Foreground RendererV1.0  --XF" Batch_render;
+
+//第一行UI
+rowColumnLayout -numberOfColumns 1 -w 700;
+rowColumnLayout -numberOfColumns 7 ;
+
+text -l "  ";
+text  -fn "boldLabelFont" -l  "输出路径  :  ";
+textField -cc "fix_path()" -tx ($defaultLocation+"\\") -fn "boldLabelFont" -ann "设置文件输出路径" -w 250 path_loc;
+text -l " ";
+button  -l "浏览..." -w 65  -c browse_path; 
+text -l "  ";
+
+button  -l "打开路径"  -w 70 -c openImagesFolder ; 
+setParent ..;
+
+//第二行UI
+rowColumnLayout -numberOfColumns 12;
+
+text -l "  ";
+text -fn "boldLabelFont" -l "预设 ：";
+ optionMenuGrp -cc "R_preset"  Res_preset ;
+menuItem -label "HD 1080P";
+menuItem -label "HD 720P";
+menuItem -label "640*480";
+menuItem -label "1k square";
+menuItem -label "2k square";
+menuItem -label "3k square";
+menuItem -label "4k square";
+
+text -fn "boldLabelFont" -l "宽度 ：" -w 45;
+intField   -v $theResolution_w -ann "设置图像输出宽度" -w 40 -cc "R_preset($getTheW,$getTheH)" the_w;
+text -l " ";
+text  -fn "boldLabelFont" -l "高度 ：" -w 45;
+intField  -v $theResolution_h  -ann "设置图像输出高度" -w 40 -cc "R_preset($getTheW,$getTheH)" the_h;
+text -l " ";
+text -fn "boldLabelFont" -l "padding ：" -ann "设置序列帧数字位数";
+ optionMenuGrp -ann "设置序列帧数字位数" the_padding;
+menuItem -label "2";
+menuItem -label "3";
+menuItem -label "4";
+menuItem -label "5";
+menuItem -label "6";
+optionMenuGrp -e -v "4" the_padding;
+
+button  -l "渲染设置" -ann "打开详细渲染设置面板" -c open_render_setting -w 100;
+setParent ..;
+
+setParent ..;
+rowColumnLayout -numberOfColumns 1 -h 40;  
+scrollLayout -bgc 0.671 0.671 0.671  -h 40 -w 7;
+setParent ..;
+setParent ..;
+iconTextButton  -fn "boldLabelFont" -bgc 1.0 0.5 0.17 -h 20 -w 125 -style "iconAndTextHorizontal" -c "if_render($allRenderLayer,$num_Layer)"
+    -image1 "bullet_interactivePlayback.png" -ann "开始渲染" -label "       Start \n   Rendering";
+
+//第三行UI
+rowColumnLayout -numberOfColumns 30;
+ 
+text -l "            ";
+text -fn "boldLabelFont" -l "|渲染层|" ;
+
+text -l "              ";
+text -fn "boldLabelFont" -l "|渲染器|"  text_RU;
+
+
+text -l "     ";
+text -fn "boldLabelFont" -l "|渲染摄像机|"  text_CA;
+
+
+text -l "   ";
+text  -fn "boldLabelFont" -l "|图像格式|"  text_IF;
+
+
+text -l "  ";
+text -fn "boldLabelFont" -l "|帧范围|" text_SEF;
+
+
+text -l "   ";
+text -fn "boldLabelFont" -l "|文件夹名称|" ;
+
+showWindow Batch_render;
+//===================================================================
